@@ -22,9 +22,11 @@ export const BloodGroupNames = {
 
 export interface ContactInfo {
   phone: string;
+  phoneNumber?: string; // Alias for compatibility
   address: string;
   city: string;
   state: string;
   zipCode: string;
+  pinCode?: string; // Alias for compatibility  
   country: string;
 }

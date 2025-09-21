@@ -3,10 +3,14 @@ import { BloodGroup, ContactInfo } from './common.model';
 export interface Recipient {
   recipientId: number;
   userId: number;
+  userName?: string;
+  userEmail?: string;
   hospitalName: string;
   doctorName: string;
   contactInfo: ContactInfo;
   medicalCondition: string;
+  totalRequests?: number;
+  pendingRequests?: number;
   createdAt: Date;
   updatedAt?: Date;
 }

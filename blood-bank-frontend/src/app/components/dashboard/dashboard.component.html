@@ -26,8 +26,25 @@
         <p>Manage users, donors, recipients, and blood inventory</p>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-raised-button color="primary">Manage Users</button>
-        <button mat-raised-button color="accent">View Reports</button>
+        <button mat-raised-button color="primary" (click)="navigateTo('/admin/dashboard')">Admin Dashboard</button>
+        <button mat-raised-button color="accent" (click)="navigateTo('/admin/reports')">View Reports</button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Donor Management (Admin/Staff) -->
+    <mat-card *ngIf="currentUser?.role === UserRole.Admin" class="feature-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>people</mat-icon>
+          Donor Management
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Register donors, track donations, check eligibility, manage donor records</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="navigateTo('/admin/users')">View All Donors</button>
+        <button mat-raised-button color="accent" (click)="navigateTo('/donors')">Register Donor</button>
       </mat-card-actions>
     </mat-card>
 
@@ -43,8 +60,8 @@
         <p>Manage donor profile, view donation history, check eligibility</p>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-raised-button color="primary">My Profile</button>
-        <button mat-raised-button color="accent">Donation History</button>
+        <button mat-raised-button color="primary" (click)="navigateTo('/donors')">My Profile</button>
+        <button mat-raised-button color="accent" (click)="navigateTo('/donors')">Donation History</button>
       </mat-card-actions>
     </mat-card>
 
@@ -60,8 +77,8 @@
         <p>Request blood, view request status, manage recipient profile</p>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-raised-button color="primary">Blood Requests</button>
-        <button mat-raised-button color="accent">My Profile</button>
+        <button mat-raised-button color="primary" (click)="navigateTo('/recipient')">Blood Requests</button>
+        <button mat-raised-button color="accent" (click)="navigateTo('/recipient')">My Profile</button>
       </mat-card-actions>
     </mat-card>
 
@@ -77,8 +94,8 @@
         <p>Monitor blood stock levels, manage inventory, track expiry</p>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-raised-button color="primary">View Inventory</button>
-        <button mat-raised-button color="warn">Low Stock Alerts</button>
+        <button mat-raised-button color="primary" (click)="navigateTo('/admin/inventory')">View Inventory</button>
+        <button mat-raised-button color="warn" (click)="navigateTo('/admin/inventory')">Low Stock Alerts</button>
       </mat-card-actions>
     </mat-card>
 
@@ -94,8 +111,8 @@
         <p>Individual blood unit tracking, FIFO issuing, expiry management</p>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-raised-button color="primary">Manage Stock</button>
-        <button mat-raised-button color="accent">Issue Blood</button>
+        <button mat-raised-button color="primary" (click)="navigateTo('/admin/inventory')">Manage Stock</button>
+        <button mat-raised-button color="accent" (click)="navigateTo('/admin/inventory')">Issue Blood</button>
       </mat-card-actions>
     </mat-card>
   </div>

@@ -13,5 +13,20 @@ export const routes: Routes = [
     component: DashboardComponent,
     canActivate: [AuthGuard]
   },
+  {
+    path: 'donors',
+    loadChildren: () => import('./modules/donor/donor.module').then(m => m.DonorModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'recipient',
+    loadChildren: () => import('./modules/recipient/recipient.module').then(m => m.RecipientModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'admin',
+    loadChildren: () => import('./modules/admin/admin.module').then(m => m.AdminModule),
+    canActivate: [AuthGuard]
+  },
   { path: '**', redirectTo: '/dashboard' }
 ];

@@ -41,6 +41,10 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+  }
+
   getUserRoleName(): string {
     switch (this.currentUser?.role) {
       case UserRole.Admin:

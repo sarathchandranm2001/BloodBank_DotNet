@@ -3,42 +3,50 @@ import { BloodGroup, ContactInfo } from './common.model';
 export interface Donor {
   donorId: number;
   userId: number;
+  userName: string;
+  userEmail: string;
   bloodGroup: BloodGroup;
+  bloodGroupDisplay: string;
   lastDonationDate?: Date;
-  contactInfo: ContactInfo;
   medicalHistory: string;
-  createdAt: Date;
-  updatedAt?: Date;
+  contactInfo: ContactInfo;
   isEligibleToDonate: boolean;
   nextEligibleDonationDate?: Date;
+  daysSinceLastDonation: number;
 }
 
 export interface DonorRegistration {
   userId: number;
   bloodGroup: BloodGroup;
+  lastDonationDate?: Date;
   contactInfo: ContactInfo;
   medicalHistory: string;
 }
 
 export interface DonorUpdate {
-  bloodGroup?: BloodGroup;
-  contactInfo?: ContactInfo;
-  medicalHistory?: string;
+  medicalHistory: string;
+  contactInfo: ContactInfo;
 }
 
 export interface DonorEligibility {
   donorId: number;
+  donorName: string;
+  bloodGroup: string;
   isEligible: boolean;
+  reason: string;
+  daysSinceLastDonation: number;
+  minimumDaysBetweenDonations: number;
   nextEligibleDate?: Date;
-  daysSinceLastDonation?: number;
-  daysUntilEligible?: number;
 }
 
 export interface DonationHistory {
-  donationId: number;
   donorId: number;
-  donationDate: Date;
-  bloodGroup: BloodGroup;
-  unitsCollected: number;
-  notes?: string;
+  donorName: string;
+  bloodGroup: string;
+  totalDonations: number;
+  lastDonationDate?: Date;
+  firstDonationDate?: Date;
+  averageDaysBetweenDonations: number;
+  isCurrentlyEligible: boolean;
+  nextEligibleDate?: Date;
 }
