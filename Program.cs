@@ -8,11 +8,11 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Add Entity Framework with MySQL
+// Add Entity Framework with MySQL (XAMPP)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+        new MySqlServerVersion(new Version(8, 0, 21)) // Common XAMPP MySQL version
     ));
 
 // Configure JWT Settings
