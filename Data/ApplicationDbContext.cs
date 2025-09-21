@@ -13,7 +13,9 @@ namespace BloodBankManagement.Data
         // DbSets for entities
         public DbSet<User> Users { get; set; }
         public DbSet<Donor> Donors { get; set; }
-        // Example: public DbSet<BloodRequest> BloodRequests { get; set; }
+        public DbSet<Recipient> Recipients { get; set; }
+        public DbSet<BloodRequest> BloodRequests { get; set; }
+        public DbSet<BloodInventory> BloodInventory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,6 +58,73 @@ namespace BloodBankManagement.Data
                       .WithMany()
                       .HasForeignKey(d => d.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure Recipient entity
+            modelBuilder.Entity<Recipient>(entity =>
+            {
+                entity.HasKey(e => e.RecipientId);
+                entity.HasIndex(e => e.UserId).IsUnique();
+                entity.Property(e => e.HospitalName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.DoctorName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.MedicalCondition).HasMaxLength(500);
+
+                // Configure ContactInfo as owned entity (embedded)
+                entity.OwnsOne(r => r.ContactInfo, contact =>
+                {
+                    contact.Property(c => c.Phone).HasMaxLength(20);
+                    contact.Property(c => c.Address).HasMaxLength(200);
+                    contact.Property(c => c.City).HasMaxLength(50);
+                    contact.Property(c => c.State).HasMaxLength(50);
+                    contact.Property(c => c.ZipCode).HasMaxLength(10);
+                    contact.Property(c => c.Country).HasMaxLength(50);
+                });
+
+                // Configure relationship with User
+                entity.HasOne(r => r.User)
+                      .WithMany()
+                      .HasForeignKey(r => r.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure BloodRequest entity
+            modelBuilder.Entity<BloodRequest>(entity =>
+            {
+                entity.HasKey(e => e.RequestId);
+                entity.Property(e => e.BloodGroup).HasConversion<int>();
+                entity.Property(e => e.Status).HasConversion<int>();
+                entity.Property(e => e.Urgency).HasConversion<int>();
+                entity.Property(e => e.RequestReason).HasMaxLength(500);
+                entity.Property(e => e.DoctorNotes).HasMaxLength(1000);
+                entity.Property(e => e.AdminNotes).HasMaxLength(500);
+
+                // Configure relationship with Recipient
+                entity.HasOne(br => br.Recipient)
+                      .WithMany(r => r.BloodRequests)
+                      .HasForeignKey(br => br.RecipientId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Configure relationship with ApprovedBy User
+                entity.HasOne(br => br.ApprovedByUser)
+                      .WithMany()
+                      .HasForeignKey(br => br.ApprovedBy)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                // Configure relationship with FulfilledBy User
+                entity.HasOne(br => br.FulfilledByUser)
+                      .WithMany()
+                      .HasForeignKey(br => br.FulfilledBy)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // Configure BloodInventory entity
+            modelBuilder.Entity<BloodInventory>(entity =>
+            {
+                entity.HasKey(e => e.InventoryId);
+                entity.HasIndex(e => e.BloodGroup).IsUnique();
+                entity.Property(e => e.BloodGroup).HasConversion<int>();
+                entity.Property(e => e.Location).HasMaxLength(200);
+                entity.Property(e => e.Notes).HasMaxLength(500);
             });
         }
     }
