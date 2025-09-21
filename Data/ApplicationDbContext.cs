@@ -16,6 +16,7 @@ namespace BloodBankManagement.Data
         public DbSet<Recipient> Recipients { get; set; }
         public DbSet<BloodRequest> BloodRequests { get; set; }
         public DbSet<BloodInventory> BloodInventory { get; set; }
+        public DbSet<BloodStock> BloodStocks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -125,6 +126,21 @@ namespace BloodBankManagement.Data
                 entity.Property(e => e.BloodGroup).HasConversion<int>();
                 entity.Property(e => e.Location).HasMaxLength(200);
                 entity.Property(e => e.Notes).HasMaxLength(500);
+            });
+
+            // Configure BloodStock entity
+            modelBuilder.Entity<BloodStock>(entity =>
+            {
+                entity.HasKey(e => e.StockId);
+                entity.Property(e => e.BloodGroup).HasConversion<int>();
+                entity.Property(e => e.DonorBatch).HasMaxLength(100);
+                entity.Property(e => e.StorageLocation).HasMaxLength(200);
+                entity.Property(e => e.Notes).HasMaxLength(500);
+                
+                // Create index for better query performance
+                entity.HasIndex(e => e.BloodGroup);
+                entity.HasIndex(e => e.ExpiryDate);
+                entity.HasIndex(e => new { e.BloodGroup, e.ExpiryDate });
             });
         }
     }
