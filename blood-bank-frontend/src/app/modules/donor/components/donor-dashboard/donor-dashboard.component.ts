@@ -1,44 +1,56 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-donor-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   template: `
     <div class="donor-dashboard">
-      <mat-toolbar color="primary">
-        <mat-toolbar-row>
-          <span>Donor Management</span>
-          <span class="spacer"></span>
-          <button mat-button routerLink="/donors/register" *ngIf="canRegisterDonor()">
-            <mat-icon>person_add</mat-icon>
-            Register Donor
-          </button>
-        </mat-toolbar-row>
-      </mat-toolbar>
-
-      <div class="dashboard-content">
-        <nav mat-tab-nav-bar>
-          <a mat-tab-link 
-             routerLink="/donors/list" 
-             routerLinkActive 
-             #rla1="routerLinkActive"
-             [active]="rla1.isActive">
-            <mat-icon>people</mat-icon>
-            All Donors
-          </a>
-          <a mat-tab-link 
-             routerLink="/donors/register" 
-             routerLinkActive 
-             #rla2="routerLinkActive"
-             [active]="rla2.isActive"
-             *ngIf="canRegisterDonor()">
-            <mat-icon>person_add</mat-icon>
-            Register
-          </a>
-        </nav>
-
-        <div class="tab-content">
-          <router-outlet></router-outlet>
+      <!-- Header -->
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+          <span class="navbar-brand mb-0 h1">
+            <i class="bi bi-heart-pulse me-2"></i>
+            Donor Management
+          </span>
+          <div class="d-flex">
+            <a class="btn btn-light btn-sm" routerLink="/donors/register" *ngIf="canRegisterDonor()">
+              <i class="bi bi-person-plus me-2"></i>
+              Register Donor
+            </a>
+          </div>
         </div>
+      </nav>
+
+      <!-- Navigation Tabs -->
+      <div class="bg-light border-bottom">
+        <div class="container-fluid">
+          <ul class="nav nav-tabs nav-tabs-no-border">
+            <li class="nav-item">
+              <a class="nav-link" 
+                 routerLink="/donors/list" 
+                 routerLinkActive="active">
+                <i class="bi bi-people me-2"></i>
+                All Donors
+              </a>
+            </li>
+            <li class="nav-item" *ngIf="canRegisterDonor()">
+              <a class="nav-link" 
+                 routerLink="/donors/register" 
+                 routerLinkActive="active">
+                <i class="bi bi-person-plus me-2"></i>
+                Register
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="dashboard-content">
+        <router-outlet></router-outlet>
       </div>
     </div>
   `,

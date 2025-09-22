@@ -1,143 +1,176 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DonorService } from '../../../../services/donor.service';
 import { DonorEligibility } from '../../../../models/donor.model';
 
 @Component({
   selector: 'app-donor-eligibility',
+  standalone: true,
+  imports: [CommonModule],
   template: `
-    <div class="eligibility-container">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>health_and_safety</mat-icon>
-            Donor Eligibility Check
-          </mat-card-title>
-          <button mat-icon-button (click)="goBack()" matTooltip="Back">
-            <mat-icon>arrow_back</mat-icon>
-          </button>
-        </mat-card-header>
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <!-- Header -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0">
+              <i class="bi bi-shield-check me-2"></i>
+              Donor Eligibility Check
+            </h2>
+            <button class="btn btn-outline-secondary" (click)="goBack()">
+              <i class="bi bi-arrow-left me-2"></i>
+              Back
+            </button>
+          </div>
 
-        <mat-card-content *ngIf="eligibility">
           <!-- Eligibility Status -->
-          <div class="status-section">
-            <div class="status-card" [class.eligible]="eligibility.isEligible" [class.not-eligible]="!eligibility.isEligible">
-              <mat-icon class="status-icon">
-                {{eligibility.isEligible ? 'check_circle' : 'cancel'}}
-              </mat-icon>
-              <div class="status-content">
-                <h2>{{eligibility.isEligible ? 'ELIGIBLE TO DONATE' : 'NOT ELIGIBLE TO DONATE'}}</h2>
-                <p class="donor-name">{{eligibility.donorName}} ({{eligibility.bloodGroup}})</p>
-              </div>
+          <div class="card mb-4" *ngIf="eligibility">
+            <div class="card-body text-center py-5" 
+                 [class.bg-success]="eligibility.isEligible" 
+                 [class.bg-danger]="!eligibility.isEligible"
+                 [class.text-white]="true">
+              <i class="bi display-1 mb-3" 
+                 [class.bi-check-circle-fill]="eligibility.isEligible"
+                 [class.bi-x-circle-fill]="!eligibility.isEligible"></i>
+              <h2 class="mb-2">
+                {{eligibility.isEligible ? 'ELIGIBLE TO DONATE' : 'NOT ELIGIBLE TO DONATE'}}
+              </h2>
+              <p class="mb-0 fs-5">{{eligibility.donorName}} ({{eligibility.bloodGroup}})</p>
             </div>
           </div>
 
           <!-- Eligibility Details -->
-          <div class="details-section">
-            <h3>Eligibility Details</h3>
-            
-            <div class="detail-item">
-              <mat-icon>info</mat-icon>
-              <div>
-                <strong>Reason:</strong>
-                <p>{{eligibility.reason}}</p>
-              </div>
+          <div class="card mb-4" *ngIf="eligibility">
+            <div class="card-header bg-primary text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-info-circle me-2"></i>
+                Eligibility Details
+              </h5>
             </div>
+            <div class="card-body">
+              <div class="row g-4">
+                <div class="col-12">
+                  <div class="d-flex align-items-start">
+                    <i class="bi bi-chat-text-fill text-primary me-3 fs-5"></i>
+                    <div>
+                      <strong class="d-block">Reason:</strong>
+                      <p class="mb-0">{{eligibility.reason}}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-clock-fill text-info me-3 fs-5"></i>
+                    <div>
+                      <strong class="d-block">Days Since Last Donation:</strong>
+                      <p class="mb-0">{{eligibility.daysSinceLastDonation}} days</p>
+                    </div>
+                  </div>
+                </div>
 
-            <div class="detail-item">
-              <mat-icon>timelapse</mat-icon>
-              <div>
-                <strong>Days Since Last Donation:</strong>
-                <p>{{eligibility.daysSinceLastDonation}} days</p>
-              </div>
-            </div>
+                <div class="col-md-6">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-hourglass-split text-warning me-3 fs-5"></i>
+                    <div>
+                      <strong class="d-block">Minimum Days Between Donations:</strong>
+                      <p class="mb-0">{{eligibility.minimumDaysBetweenDonations}} days</p>
+                    </div>
+                  </div>
+                </div>
 
-            <div class="detail-item">
-              <mat-icon>schedule</mat-icon>
-              <div>
-                <strong>Minimum Days Between Donations:</strong>
-                <p>{{eligibility.minimumDaysBetweenDonations}} days</p>
-              </div>
-            </div>
-
-            <div class="detail-item" *ngIf="eligibility.nextEligibleDate">
-              <mat-icon>event</mat-icon>
-              <div>
-                <strong>Next Eligible Date:</strong>
-                <p>{{eligibility.nextEligibleDate | date:'fullDate'}}</p>
+                <div class="col-12" *ngIf="eligibility.nextEligibleDate">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-calendar-event-fill text-success me-3 fs-5"></i>
+                    <div>
+                      <strong class="d-block">Next Eligible Date:</strong>
+                      <p class="mb-0">{{eligibility.nextEligibleDate | date:'fullDate'}}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Guidelines -->
-          <div class="guidelines-section">
-            <h3>Blood Donation Guidelines</h3>
-            <mat-list>
-              <mat-list-item>
-                <mat-icon matListIcon [class.met]="eligibility.daysSinceLastDonation >= 56" 
-                         [class.not-met]="eligibility.daysSinceLastDonation < 56">
-                  {{eligibility.daysSinceLastDonation >= 56 ? 'check_circle' : 'cancel'}}
-                </mat-icon>
-                <div matLine>Minimum 56 days gap between donations</div>
-                <div matLine>
-                  <small>Current gap: {{eligibility.daysSinceLastDonation}} days</small>
+          <div class="card mb-4" *ngIf="eligibility">
+            <div class="card-header bg-info text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-list-check me-2"></i>
+                Blood Donation Guidelines
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="list-group list-group-flush">
+                <div class="list-group-item d-flex align-items-center">
+                  <i class="bi me-3 fs-5" 
+                     [class.bi-check-circle-fill]="eligibility.daysSinceLastDonation >= 56"
+                     [class.bi-x-circle-fill]="eligibility.daysSinceLastDonation < 56"
+                     [class.text-success]="eligibility.daysSinceLastDonation >= 56"
+                     [class.text-danger]="eligibility.daysSinceLastDonation < 56"></i>
+                  <div class="flex-grow-1">
+                    <div class="fw-bold">Minimum 56 days gap between donations</div>
+                    <small class="text-muted">Current gap: {{eligibility.daysSinceLastDonation}} days</small>
+                  </div>
                 </div>
-              </mat-list-item>
 
-              <mat-list-item>
-                <mat-icon matListIcon class="info">info</mat-icon>
-                <div matLine>Age should be between 18-65 years</div>
-              </mat-list-item>
+                <div class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-info-circle-fill text-primary me-3 fs-5"></i>
+                  <div class="fw-bold">Age should be between 18-65 years</div>
+                </div>
 
-              <mat-list-item>
-                <mat-icon matListIcon class="info">info</mat-icon>
-                <div matLine>Weight should be at least 50 kg</div>
-              </mat-list-item>
+                <div class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-info-circle-fill text-primary me-3 fs-5"></i>
+                  <div class="fw-bold">Weight should be at least 50 kg</div>
+                </div>
 
-              <mat-list-item>
-                <mat-icon matListIcon class="info">info</mat-icon>
-                <div matLine>Must be in good health condition</div>
-              </mat-list-item>
+                <div class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-info-circle-fill text-primary me-3 fs-5"></i>
+                  <div class="fw-bold">Must be in good health condition</div>
+                </div>
 
-              <mat-list-item>
-                <mat-icon matListIcon class="info">info</mat-icon>
-                <div matLine>Hemoglobin level ≥ 12.5 g/dl</div>
-              </mat-list-item>
-            </mat-list>
+                <div class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-info-circle-fill text-primary me-3 fs-5"></i>
+                  <div class="fw-bold">Hemoglobin level ≥ 12.5 g/dl</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Actions -->
-          <div class="actions-section">
-            <button mat-button (click)="goBack()">
-              <mat-icon>arrow_back</mat-icon>
-              Back to Profile
-            </button>
+          <div class="card" *ngIf="eligibility">
+            <div class="card-body">
+              <div class="d-flex flex-wrap justify-content-center gap-3">
+                <button class="btn btn-outline-secondary" (click)="goBack()">
+                  <i class="bi bi-arrow-left me-2"></i>
+                  Back to Profile
+                </button>
 
-            <button mat-raised-button 
-                    color="primary" 
-                    (click)="refreshEligibility()">
-              <mat-icon>refresh</mat-icon>
-              Refresh Status
-            </button>
+                <button class="btn btn-primary" (click)="refreshEligibility()">
+                  <i class="bi bi-arrow-clockwise me-2"></i>
+                  Refresh Status
+                </button>
 
-            <button mat-raised-button 
-                    color="accent" 
-                    (click)="proceedToDonation()"
-                    [disabled]="!eligibility.isEligible">
-              <mat-icon>bloodtype</mat-icon>
-              Proceed to Donation
-            </button>
+                <button class="btn btn-success" 
+                        (click)="proceedToDonation()"
+                        [disabled]="!eligibility.isEligible">
+                  <i class="bi bi-droplet-half me-2"></i>
+                  Proceed to Donation
+                </button>
+              </div>
+            </div>
           </div>
-        </mat-card-content>
 
-        <!-- Loading State -->
-        <mat-card-content *ngIf="loading">
-          <div class="loading-container">
-            <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-            <p>Checking eligibility...</p>
+          <!-- Loading State -->
+          <div class="text-center py-5" *ngIf="loading">
+            <div class="spinner-border text-primary mb-3" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted">Checking eligibility...</p>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     </div>
   `,
   styles: [`

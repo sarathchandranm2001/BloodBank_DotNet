@@ -1,152 +1,182 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
 import { DonorService } from '../../../../services/donor.service';
 import { Donor } from '../../../../models/donor.model';
 import { BloodGroupNames } from '../../../../models/common.model';
 
 @Component({
   selector: 'app-donor-list',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="donor-list-container">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>people</mat-icon>
-            Donors List
-          </mat-card-title>
-          <div class="header-actions">
-            <button mat-raised-button color="primary" 
-                    (click)="loadEligibleDonors()" 
-                    [class.active]="showEligibleOnly">
-              <mat-icon>check_circle</mat-icon>
-              Eligible Donors ({{eligibleCount}})
-            </button>
-            <button mat-raised-button (click)="loadAllDonors()" [class.active]="!showEligibleOnly">
-              <mat-icon>group</mat-icon>
-              All Donors
-            </button>
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-12">
+          <!-- Header -->
+          <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+              <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                  <i class="bi bi-people me-2"></i>
+                  Donors List
+                </h4>
+                <div class="d-flex gap-2">
+                  <button 
+                    class="btn btn-light btn-sm" 
+                    [class.btn-warning]="showEligibleOnly"
+                    (click)="loadEligibleDonors()">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Eligible Donors ({{eligibleCount}})
+                  </button>
+                  <button 
+                    class="btn btn-light btn-sm"
+                    [class.btn-secondary]="!showEligibleOnly"
+                    (click)="loadAllDonors()">
+                    <i class="bi bi-people me-1"></i>
+                    All Donors
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="form-label">Filter by Blood Group</label>
+                  <select 
+                    class="form-select" 
+                    [(ngModel)]="selectedBloodGroup" 
+                    (change)="filterByBloodGroup()">
+                    <option value="">All Blood Groups</option>
+                    <option *ngFor="let group of bloodGroups" [value]="group.value">
+                      {{group.label}}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Search donors</label>
+                  <div class="input-group">
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      placeholder="Search by name or email"
+                      (keyup)="applyFilter($event)">
+                    <span class="input-group-text">
+                      <i class="bi bi-search"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </mat-card-header>
 
-        <mat-card-content>
-          <div class="filters">
-            <mat-form-field appearance="outline">
-              <mat-label>Filter by Blood Group</mat-label>
-              <mat-select [(value)]="selectedBloodGroup" (selectionChange)="filterByBloodGroup()">
-                <mat-option value="">All Blood Groups</mat-option>
-                <mat-option *ngFor="let group of bloodGroups" [value]="group.value">
-                  {{group.label}}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Search donors</mat-label>
-              <input matInput (keyup)="applyFilter($event)" placeholder="Search by name or email">
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
-          </div>
-
-          <div class="table-container" *ngIf="!loading">
-            <table mat-table [dataSource]="filteredDonors" class="donors-table">
-              
-              <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef>Name</th>
-                <td mat-cell *matCellDef="let donor">
-                  <div class="donor-info">
-                    <strong>{{donor.userName}}</strong>
-                    <small>{{donor.userEmail}}</small>
-                  </div>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="bloodGroup">
-                <th mat-header-cell *matHeaderCellDef>Blood Group</th>
-                <td mat-cell *matCellDef="let donor">
-                  <mat-chip class="blood-group-chip" [class]="'blood-' + donor.bloodGroup">
-                    {{donor.bloodGroupDisplay}}
-                  </mat-chip>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="lastDonation">
-                <th mat-header-cell *matHeaderCellDef>Last Donation</th>
-                <td mat-cell *matCellDef="let donor">
-                  <div *ngIf="donor.lastDonationDate; else noDonation">
-                    {{donor.lastDonationDate | date:'shortDate'}}
-                    <small>({{donor.daysSinceLastDonation}} days ago)</small>
-                  </div>
-                  <ng-template #noDonation>
-                    <span class="no-donation">Never donated</span>
-                  </ng-template>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="eligibility">
-                <th mat-header-cell *matHeaderCellDef>Status</th>
-                <td mat-cell *matCellDef="let donor">
-                  <mat-chip [class]="donor.isEligibleToDonate ? 'eligible' : 'not-eligible'">
-                    <mat-icon>{{donor.isEligibleToDonate ? 'check_circle' : 'block'}}</mat-icon>
-                    {{donor.isEligibleToDonate ? 'Eligible' : 'Not Eligible'}}
-                  </mat-chip>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="contact">
-                <th mat-header-cell *matHeaderCellDef>Contact</th>
-                <td mat-cell *matCellDef="let donor">
-                  <div class="contact-info">
-                    <small>{{donor.contactInfo.phone}}</small>
-                  </div>
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
-                <td mat-cell *matCellDef="let donor">
-                  <div class="action-buttons">
-                    <button mat-icon-button (click)="viewProfile(donor)" matTooltip="View Profile">
-                      <mat-icon>visibility</mat-icon>
-                    </button>
-                    <button mat-icon-button 
-                            (click)="checkEligibility(donor)" 
-                            matTooltip="Check Eligibility"
-                            color="primary">
-                      <mat-icon>health_and_safety</mat-icon>
-                    </button>
-                    <button mat-icon-button 
-                            (click)="recordDonation(donor)" 
-                            matTooltip="Record Donation"
-                            color="accent"
+          <!-- Donors Table -->
+          <div class="card" *ngIf="!loading">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-dark">
+                    <tr>
+                      <th>Name</th>
+                      <th>Blood Group</th>
+                      <th>Last Donation</th>
+                      <th>Status</th>
+                      <th>Contact</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let donor of filteredDonors">
+                      <td>
+                        <div>
+                          <strong class="d-block">{{donor.userName}}</strong>
+                          <small class="text-muted">{{donor.userEmail}}</small>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge bg-danger fs-6">
+                          {{donor.bloodGroupDisplay}}
+                        </span>
+                      </td>
+                      <td>
+                        <div *ngIf="donor.lastDonationDate; else noDonation">
+                          <span class="d-block">{{donor.lastDonationDate | date:'shortDate'}}</span>
+                          <small class="text-muted">({{donor.daysSinceLastDonation}} days ago)</small>
+                        </div>
+                        <ng-template #noDonation>
+                          <span class="text-muted fst-italic">Never donated</span>
+                        </ng-template>
+                      </td>
+                      <td>
+                        <span class="badge" 
+                              [class.bg-success]="donor.isEligibleToDonate"
+                              [class.bg-danger]="!donor.isEligibleToDonate">
+                          <i class="bi" 
+                             [class.bi-check-circle]="donor.isEligibleToDonate"
+                             [class.bi-x-circle]="!donor.isEligibleToDonate"
+                             me-1></i>
+                          {{donor.isEligibleToDonate ? 'Eligible' : 'Not Eligible'}}
+                        </span>
+                      </td>
+                      <td>
+                        <small>{{donor.contactInfo.phone}}</small>
+                      </td>
+                      <td>
+                        <div class="btn-group" role="group">
+                          <button 
+                            class="btn btn-outline-primary btn-sm" 
+                            (click)="viewProfile(donor)"
+                            title="View Profile">
+                            <i class="bi bi-eye"></i>
+                          </button>
+                          <button 
+                            class="btn btn-outline-info btn-sm" 
+                            (click)="checkEligibility(donor)"
+                            title="Check Eligibility">
+                            <i class="bi bi-shield-check"></i>
+                          </button>
+                          <button 
+                            class="btn btn-outline-success btn-sm" 
+                            (click)="recordDonation(donor)"
+                            title="Record Donation"
                             [disabled]="!donor.isEligibleToDonate">
-                      <mat-icon>bloodtype</mat-icon>
-                    </button>
-                    <button mat-icon-button 
-                            (click)="viewHistory(donor)" 
-                            matTooltip="Donation History">
-                      <mat-icon>history</mat-icon>
-                    </button>
-                  </div>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
+                            <i class="bi bi-droplet-half"></i>
+                          </button>
+                          <button 
+                            class="btn btn-outline-secondary btn-sm" 
+                            (click)="viewHistory(donor)"
+                            title="Donation History">
+                            <i class="bi bi-clock-history"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
-          <div class="loading-container" *ngIf="loading">
-            <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+          <!-- Loading State -->
+          <div class="text-center py-5" *ngIf="loading">
+            <div class="spinner-border text-primary mb-3" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted">Loading donors...</p>
           </div>
 
-          <div class="no-data" *ngIf="!loading && filteredDonors.length === 0">
-            <mat-icon>people_outline</mat-icon>
-            <p>No donors found</p>
+          <!-- No Data State -->
+          <div class="card" *ngIf="!loading && filteredDonors.length === 0">
+            <div class="card-body text-center py-5">
+              <i class="bi bi-people display-1 text-muted mb-3"></i>
+              <p class="text-muted">No donors found</p>
+            </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -260,6 +290,8 @@ export class DonorListComponent implements OnInit {
   showEligibleOnly = false;
   eligibleCount = 0;
   selectedBloodGroup = '';
+  alertMessage: string = '';
+  alertType: 'success' | 'danger' | 'warning' | 'info' = 'info';
   
   displayedColumns: string[] = ['name', 'bloodGroup', 'lastDonation', 'eligibility', 'contact', 'actions'];
   
@@ -276,9 +308,7 @@ export class DonorListComponent implements OnInit {
 
   constructor(
     private donorService: DonorService,
-    private router: Router,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -297,7 +327,7 @@ export class DonorListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading donors:', error);
-        this.snackBar.open('Error loading donors', 'Close', { duration: 3000 });
+        this.showAlert('Error loading donors', 'danger');
         this.loading = false;
       }
     });
@@ -315,7 +345,7 @@ export class DonorListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading eligible donors:', error);
-        this.snackBar.open('Error loading eligible donors', 'Close', { duration: 3000 });
+        this.showAlert('Error loading eligible donors', 'danger');
         this.loading = false;
       }
     });
@@ -329,7 +359,7 @@ export class DonorListComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error filtering donors:', error);
-          this.snackBar.open('Error filtering donors', 'Close', { duration: 3000 });
+          this.showAlert('Error filtering donors', 'danger');
         }
       });
     } else {
@@ -361,5 +391,17 @@ export class DonorListComponent implements OnInit {
 
   viewHistory(donor: Donor): void {
     this.router.navigate(['/donors/history', donor.donorId]);
+  }
+
+  private showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'info'): void {
+    this.alertMessage = message;
+    this.alertType = type;
+    setTimeout(() => {
+      this.clearAlert();
+    }, 5000);
+  }
+
+  clearAlert(): void {
+    this.alertMessage = '';
   }
 }

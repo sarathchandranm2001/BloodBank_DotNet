@@ -1,53 +1,591 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
-import { DonorService } from '../../../../services/donor.service';
-import { Donor, DonorEligibility } from '../../../../models/donor.model';
+import { Component, OnInit } from '@angular/core';import { Component, OnInit } from '@angular/core';
 
-@Component({
-  selector: 'app-blood-donation',
-  template: `
-    <div class="donation-container">
-      <mat-card *ngIf="donor">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>bloodtype</mat-icon>
-            Blood Donation - {{donor.userName}}
-          </mat-card-title>
-          <mat-card-subtitle>
-            Blood Group: {{donor.bloodGroupDisplay}}
-          </mat-card-subtitle>
-        </mat-card-header>
+import { CommonModule } from '@angular/common';import { CommonModule } from '@angular/common';
 
-        <mat-card-content>
-          <!-- Donor Information -->
-          <div class="donor-info-section">
-            <h3>Donor Information</h3>
-            <div class="info-grid">
-              <div class="info-item">
-                <mat-icon>person</mat-icon>
-                <div>
-                  <strong>{{donor.userName}}</strong>
-                  <small>{{donor.userEmail}}</small>
+import { FormsModule } from '@angular/forms';import { FormsModule } from '@angular/forms';
+
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+
+
+
+interface Donor {interface Donor {
+
+  id: number;  id: number;
+
+  userName: string;  userName: string;
+
+  userEmail: string;  userEmail: string;
+
+  bloodGroupDisplay: string;  bloodGroupDisplay: string;
+
+  contactInfo: {  contactInfo: {
+
+    phone: string;    phone: string;
+
+  };  };
+
+  lastDonationDate?: Date;  lastDonationDate?: Date;
+
+  daysSinceLastDonation?: number;  daysSinceLastDonation?: number;
+
+}}
+
+
+
+interface DonorEligibility {interface DonorEligibility {
+
+  isEligible: boolean;  isEligible: boolean;
+
+  reason: string;  reason: string;
+
+  nextEligibleDate?: Date;  nextEligibleDate?: Date;
+
+}}
+
+
+
+@Component({@Component({
+
+  selector: 'app-blood-donation',  selector: 'app-blood-donation',
+
+  standalone: true,  standalone: true,
+
+  imports: [CommonModule, FormsModule, RouterModule],  imports: [CommonModule, FormsModule, RouterModule],
+
+  template: `  template: `
+
+    <div class="container-fluid mt-4">    <div class="container-fluid mt-4">
+
+      <div class="row">      <div class="row">
+
+        <div class="col-12">        <div class="col-12">
+
+          <!-- Header -->          <!-- Header -->
+
+          <div class="card mb-4" *ngIf="donor">          <div class="card mb-4" *ngIf="donor">
+
+            <div class="card-header bg-danger text-white">            <div class="card-header bg-danger text-white">
+
+              <div class="d-flex align-items-center">              <div class="d-flex align-items-center">
+
+                <i class="bi bi-droplet me-2"></i>                <i class="bi bi-droplet me-2"></i>
+
+                <h4 class="card-title mb-0">Blood Donation - {{donor.userName}}</h4>                <h4 class="card-title mb-0">Blood Donation - {{donor.userName}}</h4>
+
+              </div>              </div>
+
+              <small class="text-light">Blood Group: {{donor.bloodGroupDisplay}}</small>              <small class="text-light">Blood Group: {{donor.bloodGroupDisplay}}</small>
+
+            </div>            </div>
+
+          </div>          </div>
+
+
+
+          <!-- Donor Information -->          <!-- Donor Information -->
+
+          <div class="card mb-4" *ngIf="donor">          <div class="card mb-4" *ngIf="donor">
+
+            <div class="card-header">            <div class="card-header">
+
+              <h5 class="card-title mb-0">              <h5 class="card-title mb-0">
+
+                <i class="bi bi-person-circle me-2"></i>                <i class="bi bi-person-circle me-2"></i>
+
+                Donor Information                Donor Information
+
+              </h5>              </h5>
+
+            </div>            </div>
+
+            <div class="card-body">            <div class="card-body">
+
+              <div class="row">              <div class="row">
+
+                <div class="col-md-6 mb-3">                <div class="col-md-6 mb-3">
+
+                  <div class="info-card">                  <div class="info-card">
+
+                    <div class="d-flex align-items-center">                    <div class="d-flex align-items-center">
+
+                      <i class="bi bi-person text-primary me-3"></i>                      <i class="bi bi-person text-primary me-3"></i>
+
+                      <div>                      <div>
+
+                        <strong>{{donor.userName}}</strong>                        <strong>{{donor.userName}}</strong>
+
+                        <br><small class="text-muted">{{donor.userEmail}}</small>                        <br><small class="text-muted">{{donor.userEmail}}</small>
+
+                      </div>                      </div>
+
+                    </div>                    </div>
+
+                  </div>                  </div>
+
+                </div>                </div>
+
+                <div class="col-md-6 mb-3">                <div class="col-md-6 mb-3">
+
+                  <div class="info-card">                  <div class="info-card">
+
+                    <div class="d-flex align-items-center">                    <div class="d-flex align-items-center">
+
+                      <i class="bi bi-droplet text-danger me-3"></i>                      <i class="bi bi-droplet text-danger me-3"></i>
+
+                      <div>                      <div>
+
+                        <strong>{{donor.bloodGroupDisplay}}</strong>                        <strong>{{donor.bloodGroupDisplay}}</strong>
+
+                        <br><small class="text-muted">Blood Group</small>                        <br><small class="text-muted">Blood Group</small>
+
+                      </div>                      </div>
+
+                    </div>                    </div>
+
+                  </div>                  </div>
+
+                </div>                </div>
+
+                <div class="col-md-6 mb-3">                <div class="col-md-6 mb-3">
+
+                  <div class="info-card">                  <div class="info-card">
+
+                    <div class="d-flex align-items-center">                    <div class="d-flex align-items-center">
+
+                      <i class="bi bi-telephone text-success me-3"></i>                      <i class="bi bi-telephone text-success me-3"></i>
+
+                      <div>                      <div>
+
+                        <strong>{{donor.contactInfo.phone}}</strong>                        <strong>{{donor.contactInfo.phone}}</strong>
+
+                        <br><small class="text-muted">Contact</small>                        <br><small class="text-muted">Contact</small>
+
+                      </div>                      </div>
+
+                    </div>                    </div>
+
+                  </div>                  </div>
+
+                </div>                </div>
+
+                <div class="col-md-6 mb-3" *ngIf="donor.lastDonationDate">                <div class="col-md-6 mb-3" *ngIf="donor.lastDonationDate">
+
+                  <div class="info-card">                  <div class="info-card">
+
+                    <div class="d-flex align-items-center">                    <div class="d-flex align-items-center">
+
+                      <i class="bi bi-clock-history text-warning me-3"></i>                      <i class="bi bi-clock-history text-warning me-3"></i>
+
+                      <div>                      <div>
+
+                        <strong>{{donor.lastDonationDate | date:'shortDate'}}</strong>                        <strong>{{donor.lastDonationDate | date:'shortDate'}}</strong>
+
+                        <br><small class="text-muted">Last Donation ({{donor.daysSinceLastDonation}} days ago)</small>                        <br><small class="text-muted">Last Donation ({{donor.daysSinceLastDonation}} days ago)</small>
+
+                      </div>                      </div>
+
+                    </div>                    </div>
+
+                  </div>                  </div>
+
+                </div>                </div>
+
+              </div>              </div>
+
+            </div>            </div>
+
+          </div>          </div>
+
+
+
+          <!-- Pre-Donation Checklist -->          <!-- Eligibility Status -->
+
+          <div class="card mb-4">          <div class="card mb-4" *ngIf="eligibility">
+
+            <div class="card-header">            <div class="card-header">
+
+              <h5 class="card-title mb-0">              <h5 class="card-title mb-0">
+
+                <i class="bi bi-list-check me-2"></i>                <i class="bi bi-shield-check me-2"></i>
+
+                Pre-Donation Checklist                Donation Eligibility
+
+              </h5>              </h5>
+
+            </div>            </div>
+
+            <div class="card-body">            <div class="card-body">
+
+              <div class="checklist">              <div class="alert" 
+
+                <div class="form-check mb-3">                   [class.alert-success]="eligibility.isEligible" 
+
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.healthCondition" id="health">                   [class.alert-danger]="!eligibility.isEligible">
+
+                  <label class="form-check-label" for="health">                <div class="d-flex align-items-center">
+
+                    I am in good health and feeling well today                  <i class="bi" 
+
+                  </label>                     [class.bi-check-circle]="eligibility.isEligible" 
+
+                </div>                     [class.bi-x-circle]="!eligibility.isEligible" 
+
+                <div class="form-check mb-3">                     [class.text-success]="eligibility.isEligible" 
+
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.weightCheck" id="weight">                     [class.text-danger]="!eligibility.isEligible"></i>
+
+                  <label class="form-check-label" for="weight">                  <div class="ms-3">
+
+                    I weigh at least 50kg (110 lbs)                    <h6 class="mb-1">{{eligibility.isEligible ? 'ELIGIBLE TO DONATE' : 'NOT ELIGIBLE TO DONATE'}}</h6>
+
+                  </label>                    <p class="mb-1">{{eligibility.reason}}</p>
+
+                </div>                    <small *ngIf="!eligibility.isEligible && eligibility.nextEligibleDate">
+
+                <div class="form-check mb-3">                      Next eligible date: {{eligibility.nextEligibleDate | date:'fullDate'}}
+
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.ageVerification" id="age">                    </small>
+
+                  <label class="form-check-label" for="age">                  </div>
+
+                    I am between 18-65 years old                </div>
+
+                  </label>              </div>
+
+                </div>            </div>
+
+                <div class="form-check mb-3">          </div>
+
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.bloodPressure" id="bp">
+
+                  <label class="form-check-label" for="bp">          <!-- Pre-Donation Checklist -->
+
+                    My blood pressure is normal          <div class="card mb-4">
+
+                  </label>            <div class="card-header">
+
+                </div>              <h5 class="card-title mb-0">
+
+                <div class="form-check mb-3">                <i class="bi bi-list-check me-2"></i>
+
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.hemoglobin" id="hemo">                Pre-Donation Checklist
+
+                  <label class="form-check-label" for="hemo">              </h5>
+
+                    My hemoglobin level is adequate            </div>
+
+                  </label>            <div class="card-body">
+
+                </div>              <div class="checklist">
+
+                <div class="form-check mb-3">                <div class="form-check mb-3">
+
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.noAlcohol" id="alcohol">                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.healthCondition" id="health">
+
+                  <label class="form-check-label" for="alcohol">                  <label class="form-check-label" for="health">
+
+                    I have not consumed alcohol in the past 24 hours                    I am in good health and feeling well today
+
+                  </label>                  </label>
+
+                </div>                </div>
+
+                <div class="form-check mb-3">                <div class="form-check mb-3">
+
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.consentGiven" id="consent">                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.weightCheck" id="weight">
+
+                  <label class="form-check-label" for="consent">                  <label class="form-check-label" for="weight">
+
+                    I consent to blood donation and understand the process                    I weigh at least 50kg (110 lbs)
+
+                  </label>                  </label>
+
+                </div>                </div>
+
+              </div>                <div class="form-check mb-3">
+
+            </div>                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.ageVerification" id="age">
+
+          </div>                  <label class="form-check-label" for="age">
+
+                    I am between 18-65 years old
+
+          <!-- Action Buttons -->                  </label>
+
+          <div class="card">                </div>
+
+            <div class="card-body">                <div class="form-check mb-3">
+
+              <div class="d-flex justify-content-between">                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.bloodPressure" id="bp">
+
+                <button class="btn btn-outline-secondary" (click)="goBack()">                  <label class="form-check-label" for="bp">
+
+                  <i class="bi bi-arrow-left me-2"></i>                    My blood pressure is normal
+
+                  Back to Profile                  </label>
+
+                </button>                </div>
+
+                <button class="btn btn-danger"                 <div class="form-check mb-3">
+
+                        [disabled]="!isReadyToDonate()"                   <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.hemoglobin" id="hemo">
+
+                        (click)="startDonation()">                  <label class="form-check-label" for="hemo">
+
+                  <i class="bi bi-droplet me-2"></i>                    My hemoglobin level is adequate
+
+                  Start Donation                  </label>
+
+                </button>                </div>
+
+              </div>                <div class="form-check mb-3">
+
+            </div>                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.noAlcohol" id="alcohol">
+
+          </div>                  <label class="form-check-label" for="alcohol">
+
+                    I have not consumed alcohol in the past 24 hours
+
+          <!-- Loading -->                  </label>
+
+          <div *ngIf="isLoading" class="text-center py-5">                </div>
+
+            <div class="spinner-border text-danger" role="status">                <div class="form-check mb-3">
+
+              <span class="visually-hidden">Loading...</span>                  <input class="form-check-input" type="checkbox" [(ngModel)]="checklist.consentGiven" id="consent">
+
+            </div>                  <label class="form-check-label" for="consent">
+
+          </div>                    I consent to blood donation and understand the process
+
+                  </label>
+
+          <!-- Error Alert -->                </div>
+
+          <div *ngIf="error" class="alert alert-danger mt-3">              </div>
+
+            <i class="bi bi-exclamation-triangle me-2"></i>            </div>
+
+            <strong>Error!</strong> {{error}}          </div>
+
+          </div>
+
+        </div>          <!-- Donation Information -->
+
+      </div>          <div class="card mb-4">
+
+    </div>            <div class="card-header">
+
+  `,              <h5 class="card-title mb-0">
+
+  styles: [`                <i class="bi bi-info-circle me-2"></i>
+
+    .info-card {                Donation Information
+
+      padding: 1rem;              </h5>
+
+      border: 1px solid #dee2e6;            </div>
+
+      border-radius: 8px;            <div class="card-body">
+
+      background-color: #f8f9fa;              <div class="row">
+
+    }                <div class="col-md-4 mb-3">
+
+                  <div class="donation-info-card">
+
+    .form-check-input:checked {                    <i class="bi bi-calendar-event text-primary"></i>
+
+      background-color: #dc3545;                    <h6>Date</h6>
+
+      border-color: #dc3545;                    <p>{{today | date:'fullDate'}}</p>
+
+    }                  </div>
+
                 </div>
-              </div>
-              <div class="info-item">
-                <mat-icon>bloodtype</mat-icon>
-                <div>
-                  <strong>{{donor.bloodGroupDisplay}}</strong>
-                  <small>Blood Group</small>
-                </div>
-              </div>
-              <div class="info-item">
-                <mat-icon>phone</mat-icon>
-                <div>
-                  <strong>{{donor.contactInfo.phone}}</strong>
-                  <small>Contact</small>
-                </div>
-              </div>
-              <div class="info-item" *ngIf="donor.lastDonationDate">
-                <mat-icon>history</mat-icon>
+
+    .btn-danger:disabled {                <div class="col-md-4 mb-3">
+
+      opacity: 0.5;                  <div class="donation-info-card">
+
+    }                    <i class="bi bi-clock text-info"></i>
+
+                    <h6>Time</h6>
+
+    .checklist .form-check {                    <p>{{today | date:'shortTime'}}</p>
+
+      padding: 0.75rem;                  </div>
+
+      border: 1px solid #dee2e6;                </div>
+
+      border-radius: 6px;                <div class="col-md-4 mb-3">
+
+      background-color: #f8f9fa;                  <div class="donation-info-card">
+
+    }                    <i class="bi bi-hospital text-success"></i>
+
+                    <h6>Location</h6>
+
+    .alert {                    <p>Blood Bank Center</p>
+
+      border-radius: 8px;                  </div>
+
+    }                </div>
+
+  `]              </div>
+
+})            </div>
+
+export class BloodDonationComponent implements OnInit {          </div>
+
+  donor: Donor | null = null;
+
+  eligibility: DonorEligibility | null = null;          <!-- Action Buttons -->
+
+  isLoading = false;          <div class="card">
+
+  error: string | null = null;            <div class="card-body">
+
+  today = new Date();              <div class="d-flex justify-content-between">
+
+                  <button class="btn btn-outline-secondary" (click)="goBack()">
+
+  checklist = {                  <i class="bi bi-arrow-left me-2"></i>
+
+    healthCondition: false,                  Back to Profile
+
+    weightCheck: false,                </button>
+
+    ageVerification: false,                <div>
+
+    bloodPressure: false,                  <button class="btn btn-outline-info me-2" (click)="checkEligibility()">
+
+    hemoglobin: false,                    <i class="bi bi-shield-check me-2"></i>
+
+    noAlcohol: false,                    Check Eligibility
+
+    consentGiven: false                  </button>
+
+  };                  <button class="btn btn-danger" 
+
+                          [disabled]="!isReadyToDonate()" 
+
+  constructor(                          (click)="startDonation()">
+
+    private route: ActivatedRoute,                    <i class="bi" 
+
+    private router: Router                       [class.bi-droplet]="!isRecording" 
+
+  ) {}                       [class.bi-arrow-repeat]="isRecording"></i>
+
+                    {{isRecording ? 'Processing...' : 'Start Donation'}}
+
+  ngOnInit(): void {                  </button>
+
+    this.loadDonorInfo();                </div>
+
+  }              </div>
+
+            </div>
+
+  private loadDonorInfo(): void {          </div>
+
+    // Mock data for now
+
+    this.donor = {          <!-- Loading -->
+
+      id: 1,          <div *ngIf="isLoading" class="text-center py-5">
+
+      userName: 'John Doe',            <div class="spinner-border text-danger" role="status">
+
+      userEmail: 'john.doe@example.com',              <span class="visually-hidden">Loading...</span>
+
+      bloodGroupDisplay: 'O+',            </div>
+
+      contactInfo: {          </div>
+
+        phone: '+1-555-0123'
+
+      },          <!-- Error Alert -->
+
+      lastDonationDate: new Date('2023-12-15'),          <div *ngIf="error" class="alert alert-danger mt-3">
+
+      daysSinceLastDonation: 90            <i class="bi bi-exclamation-triangle me-2"></i>
+
+    };            <strong>Error!</strong> {{error}}
+
+  }          </div>
+
+        </div>
+
+  isReadyToDonate(): boolean {      </div>
+
+    return Object.values(this.checklist).every(check => check);    </div>
+
+  }  `,
+
+  styles: [`
+
+  startDonation(): void {    .info-card {
+
+    if (this.isReadyToDonate()) {      padding: 1rem;
+
+      this.isLoading = true;      border: 1px solid #dee2e6;
+
+      // Simulate donation process      border-radius: 8px;
+
+      setTimeout(() => {      background-color: #f8f9fa;
+
+        this.isLoading = false;    }
+
+        alert('Donation process started successfully!');
+
+      }, 2000);    .donation-info-card {
+
+    }      text-align: center;
+
+  }      padding: 1.5rem;
+
+      border: 1px solid #dee2e6;
+
+  goBack(): void {      border-radius: 8px;
+
+    this.router.navigate(['../profile', this.donor?.id], { relativeTo: this.route.parent });      background-color: #fff;
+
+  }    }
+
+}
+    .donation-info-card i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .donation-info-card h6 {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .form-check-input:checked {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .btn-danger:disabled {
+      opacity: 0.5;
+    }
+
+    .checklist .form-check {
+      padding: 0.75rem;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      background-color: #f8f9fa;
+    }
+
+    .alert {
+      border-radius: 8px;
+    }
+  `]
+})
                 <div>
                   <strong>{{donor.lastDonationDate | date:'shortDate'}}</strong>
                   <small>Last Donation ({{donor.daysSinceLastDonation}} days ago)</small>

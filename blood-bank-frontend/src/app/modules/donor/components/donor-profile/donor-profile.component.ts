@@ -1,146 +1,213 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DonorService } from '../../../../services/donor.service';
 import { Donor } from '../../../../models/donor.model';
 
 @Component({
   selector: 'app-donor-profile',
+  standalone: true,
+  imports: [CommonModule],
   template: `
-    <div class="profile-container">
-      <mat-card *ngIf="donor">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>person</mat-icon>
-            Donor Profile
-          </mat-card-title>
-          <div class="header-actions">
-            <button mat-icon-button (click)="goBack()" matTooltip="Back">
-              <mat-icon>arrow_back</mat-icon>
+    <div class="container-fluid py-4">
+      <div class="row" *ngIf="donor">
+        <div class="col-12">
+          <!-- Header -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0">
+              <i class="bi bi-person-circle me-2"></i>
+              Donor Profile
+            </h2>
+            <button class="btn btn-outline-secondary" (click)="goBack()">
+              <i class="bi bi-arrow-left me-2"></i>
+              Back
             </button>
           </div>
-        </mat-card-header>
 
-        <mat-card-content>
-          <div class="profile-grid">
+          <!-- Profile Grid -->
+          <div class="row g-4">
             <!-- Personal Information -->
-            <div class="info-section">
-              <h3>Personal Information</h3>
-              <div class="info-item">
-                <mat-icon>person</mat-icon>
-                <div>
-                  <strong>{{donor.userName}}</strong>
-                  <small>Full Name</small>
+            <div class="col-lg-4">
+              <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-person me-2"></i>
+                    Personal Information
+                  </h5>
                 </div>
-              </div>
-              <div class="info-item">
-                <mat-icon>email</mat-icon>
-                <div>
-                  <strong>{{donor.userEmail}}</strong>
-                  <small>Email Address</small>
-                </div>
-              </div>
-              <div class="info-item">
-                <mat-icon>phone</mat-icon>
-                <div>
-                  <strong>{{donor.contactInfo.phone}}</strong>
-                  <small>Phone Number</small>
-                </div>
-              </div>
-              <div class="info-item">
-                <mat-icon>location_on</mat-icon>
-                <div>
-                  <strong>{{donor.contactInfo.address}}</strong>
-                  <small>Address</small>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-person-fill text-primary me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.userName}}</strong>
+                        <small class="text-muted">Full Name</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-envelope-fill text-primary me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.userEmail}}</strong>
+                        <small class="text-muted">Email Address</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-telephone-fill text-primary me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.contactInfo.phone}}</strong>
+                        <small class="text-muted">Phone Number</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-0">
+                    <div class="d-flex align-items-start">
+                      <i class="bi bi-geo-alt-fill text-primary me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.contactInfo.address}}</strong>
+                        <small class="text-muted">Address</small>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Medical Information -->
-            <div class="info-section">
-              <h3>Medical Information</h3>
-              <div class="info-item">
-                <mat-icon>bloodtype</mat-icon>
-                <div>
-                  <strong>{{donor.bloodGroupDisplay}}</strong>
-                  <small>Blood Group</small>
+            <div class="col-lg-4">
+              <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-heart-pulse me-2"></i>
+                    Medical Information
+                  </h5>
                 </div>
-              </div>
-              <div class="info-item" *ngIf="donor.medicalHistory">
-                <mat-icon>medical_services</mat-icon>
-                <div>
-                  <strong>{{donor.medicalHistory}}</strong>
-                  <small>Medical History</small>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-droplet-fill text-danger me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.bloodGroupDisplay}}</strong>
+                        <small class="text-muted">Blood Group</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-0" *ngIf="donor.medicalHistory">
+                    <div class="d-flex align-items-start">
+                      <i class="bi bi-clipboard2-pulse-fill text-info me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.medicalHistory}}</strong>
+                        <small class="text-muted">Medical History</small>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Donation Information -->
-            <div class="info-section">
-              <h3>Donation Information</h3>
-              <div class="info-item" *ngIf="donor.lastDonationDate">
-                <mat-icon>calendar_today</mat-icon>
-                <div>
-                  <strong>{{donor.lastDonationDate | date:'fullDate'}}</strong>
-                  <small>Last Donation Date</small>
+            <div class="col-lg-4">
+              <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-calendar-heart me-2"></i>
+                    Donation Information
+                  </h5>
                 </div>
-              </div>
-              <div class="info-item" *ngIf="donor.daysSinceLastDonation">
-                <mat-icon>timelapse</mat-icon>
-                <div>
-                  <strong>{{donor.daysSinceLastDonation}} days</strong>
-                  <small>Days Since Last Donation</small>
-                </div>
-              </div>
-              <div class="info-item">
-                <mat-icon>{{donor.isEligibleToDonate ? 'check_circle' : 'cancel'}}</mat-icon>
-                <div>
-                  <strong [class.eligible]="donor.isEligibleToDonate" [class.not-eligible]="!donor.isEligibleToDonate">
-                    {{donor.isEligibleToDonate ? 'Eligible' : 'Not Eligible'}}
-                  </strong>
-                  <small>Current Status</small>
-                </div>
-              </div>
-              <div class="info-item" *ngIf="donor.nextEligibleDonationDate">
-                <mat-icon>event</mat-icon>
-                <div>
-                  <strong>{{donor.nextEligibleDonationDate | date:'fullDate'}}</strong>
-                  <small>Next Eligible Date</small>
+                <div class="card-body">
+                  <div class="mb-3" *ngIf="donor.lastDonationDate">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-calendar-check-fill text-success me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.lastDonationDate | date:'fullDate'}}</strong>
+                        <small class="text-muted">Last Donation Date</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-3" *ngIf="donor.daysSinceLastDonation">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-clock-fill text-warning me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.daysSinceLastDonation}} days</strong>
+                        <small class="text-muted">Days Since Last Donation</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center">
+                      <i class="bi" 
+                         [class.bi-check-circle-fill]="donor.isEligibleToDonate" 
+                         [class.bi-x-circle-fill]="!donor.isEligibleToDonate"
+                         [class.text-success]="donor.isEligibleToDonate"
+                         [class.text-danger]="!donor.isEligibleToDonate"
+                         me-3 fs-5></i>
+                      <div>
+                        <strong class="d-block" 
+                                [class.text-success]="donor.isEligibleToDonate" 
+                                [class.text-danger]="!donor.isEligibleToDonate">
+                          {{donor.isEligibleToDonate ? 'Eligible' : 'Not Eligible'}}
+                        </strong>
+                        <small class="text-muted">Current Status</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-0" *ngIf="donor.nextEligibleDonationDate">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-calendar-event-fill text-primary me-3 fs-5"></i>
+                      <div>
+                        <strong class="d-block">{{donor.nextEligibleDonationDate | date:'fullDate'}}</strong>
+                        <small class="text-muted">Next Eligible Date</small>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Action Buttons -->
-          <div class="actions-section">
-            <button mat-raised-button 
-                    color="primary" 
-                    (click)="checkEligibility()">
-              <mat-icon>health_and_safety</mat-icon>
-              Check Eligibility
-            </button>
-            
-            <button mat-raised-button 
-                    color="accent" 
-                    (click)="viewHistory()">
-              <mat-icon>history</mat-icon>
-              Donation History
-            </button>
-            
-            <button mat-raised-button 
-                    color="warn" 
-                    (click)="recordDonation()"
-                    [disabled]="!donor.isEligibleToDonate">
-              <mat-icon>bloodtype</mat-icon>
-              Record Donation
-            </button>
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body text-center">
+                  <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <button class="btn btn-primary" (click)="checkEligibility()">
+                      <i class="bi bi-shield-check me-2"></i>
+                      Check Eligibility
+                    </button>
+                    
+                    <button class="btn btn-info" (click)="viewHistory()">
+                      <i class="bi bi-clock-history me-2"></i>
+                      Donation History
+                    </button>
+                    
+                    <button class="btn btn-success" 
+                            (click)="recordDonation()"
+                            [disabled]="!donor.isEligibleToDonate">
+                      <i class="bi bi-droplet-half me-2"></i>
+                      Record Donation
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
 
       <!-- Loading State -->
-      <div class="loading-container" *ngIf="loading">
-        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-        <p>Loading donor profile...</p>
+      <div class="row" *ngIf="loading">
+        <div class="col-12">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted">Loading donor profile...</p>
+          </div>
+        </div>
       </div>
     </div>
   `,
