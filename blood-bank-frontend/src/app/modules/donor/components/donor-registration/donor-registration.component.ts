@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { DonorService } from '../../../../services/donor.service';
 import { UserService } from '../../../../services/user.service';
 import { DonorRegistration } from '../../../../models/donor.model';
@@ -11,192 +10,202 @@ import { User, UserRole } from '../../../../models/user.model';
 @Component({
   selector: 'app-donor-registration',
   template: `
-    <div class="registration-container">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>person_add</mat-icon>
-            Register New Donor
-          </mat-card-title>
-        </mat-card-header>
-
-        <mat-card-content>
-          <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
-            
-            <!-- User Selection -->
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Select User</mat-label>
-              <mat-select formControlName="userId" required>
-                <mat-option *ngFor="let user of users" [value]="user.userId">
-                  {{user.name}} ({{user.email}})
-                </mat-option>
-              </mat-select>
-              <mat-error *ngIf="registrationForm.get('userId')?.hasError('required')">
-                Please select a user
-              </mat-error>
-            </mat-form-field>
-
-            <!-- Blood Group Selection -->
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Blood Group</mat-label>
-              <mat-select formControlName="bloodGroup" required>
-                <mat-option *ngFor="let group of bloodGroups" [value]="group.value">
-                  {{group.label}}
-                </mat-option>
-              </mat-select>
-              <mat-error *ngIf="registrationForm.get('bloodGroup')?.hasError('required')">
-                Please select blood group
-              </mat-error>
-            </mat-form-field>
-
-            <!-- Last Donation Date (Optional) -->
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Last Donation Date (if any)</mat-label>
-              <input matInput [matDatepicker]="picker" formControlName="lastDonationDate">
-              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-              <mat-hint>Leave empty if this is the first donation</mat-hint>
-            </mat-form-field>
-
-            <!-- Contact Information -->
-            <div class="contact-section">
-              <h3>Contact Information</h3>
-              
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Phone Number</mat-label>
-                <input matInput formControlName="phone" type="tel" required>
-                <mat-error *ngIf="registrationForm.get('phone')?.hasError('required')">
-                  Phone number is required
-                </mat-error>
-                <mat-error *ngIf="registrationForm.get('phone')?.hasError('pattern')">
-                  Please enter a valid phone number
-                </mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Address</mat-label>
-                <textarea matInput formControlName="address" rows="3" required></textarea>
-                <mat-error *ngIf="registrationForm.get('address')?.hasError('required')">
-                  Address is required
-                </mat-error>
-              </mat-form-field>
+  
+    <div class="container mt-4">
+      <div class="row">
+        <!-- Main Registration Form -->
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-primary text-white d-flex align-items-center">
+              <i class="bi bi-person-plus me-2"></i>
+              <h5 class="mb-0">Register New Donor</h5>
             </div>
+            <div class="card-body">
+              <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+                
+                <!-- User Selection -->
+                <div class="mb-3">
+                  <label for="userId" class="form-label">Select User <span class="text-danger">*</span></label>
+                  <select 
+                    class="form-select" 
+                    id="userId" 
+                    formControlName="userId"
+                    [class.is-invalid]="registrationForm.get('userId')?.invalid && registrationForm.get('userId')?.touched">
+                    <option value="">Select a user</option>
+                    <option *ngFor="let user of users" [value]="user.userId">
+                      {{user.name}} ({{user.email}})
+                    </option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="registrationForm.get('userId')?.hasError('required') && registrationForm.get('userId')?.touched">
+                    Please select a user
+                  </div>
+                </div>
 
-            <!-- Medical History -->
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Medical History</mat-label>
-              <textarea matInput 
-                        formControlName="medicalHistory" 
-                        rows="4" 
-                        placeholder="Enter any relevant medical history, allergies, medications, etc."></textarea>
-              <mat-hint>Include any medical conditions, current medications, allergies, or previous surgeries</mat-hint>
-            </mat-form-field>
+                <!-- Blood Group Selection -->
+                <div class="mb-3">
+                  <label for="bloodGroup" class="form-label">Blood Group <span class="text-danger">*</span></label>
+                  <select 
+                    class="form-select" 
+                    id="bloodGroup" 
+                    formControlName="bloodGroup"
+                    [class.is-invalid]="registrationForm.get('bloodGroup')?.invalid && registrationForm.get('bloodGroup')?.touched">
+                    <option value="">Select blood group</option>
+                    <option *ngFor="let group of bloodGroups" [value]="group.value">
+                      {{group.label}}
+                    </option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="registrationForm.get('bloodGroup')?.hasError('required') && registrationForm.get('bloodGroup')?.touched">
+                    Please select blood group
+                  </div>
+                </div>
 
-            <!-- Action Buttons -->
-            <div class="form-actions">
-              <button mat-button type="button" (click)="onCancel()">
-                Cancel
-              </button>
-              <button mat-raised-button 
-                      color="primary" 
-                      type="submit" 
-                      [disabled]="registrationForm.invalid || isSubmitting">
-                <mat-icon *ngIf="isSubmitting">refresh</mat-icon>
-                <mat-icon *ngIf="!isSubmitting">save</mat-icon>
-                {{isSubmitting ? 'Registering...' : 'Register Donor'}}
-              </button>
+                <!-- Last Donation Date (Optional) -->
+                <div class="mb-3">
+                  <label for="lastDonationDate" class="form-label">Last Donation Date (if any)</label>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="lastDonationDate" 
+                    formControlName="lastDonationDate">
+                  <div class="form-text">Leave empty if this is the first donation</div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="border rounded p-3 mb-3">
+                  <h6 class="text-primary mb-3">
+                    <i class="bi bi-telephone me-2"></i>Contact Information
+                  </h6>
+                  
+                  <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                    <input 
+                      type="tel" 
+                      class="form-control" 
+                      id="phone" 
+                      formControlName="phone"
+                      [class.is-invalid]="registrationForm.get('phone')?.invalid && registrationForm.get('phone')?.touched">
+                    <div class="invalid-feedback" *ngIf="registrationForm.get('phone')?.hasError('required') && registrationForm.get('phone')?.touched">
+                      Phone number is required
+                    </div>
+                    <div class="invalid-feedback" *ngIf="registrationForm.get('phone')?.hasError('pattern') && registrationForm.get('phone')?.touched">
+                      Please enter a valid phone number
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="address" class="form-label">Address <span class="text-danger">*</span></label>
+                    <textarea 
+                      class="form-control" 
+                      id="address" 
+                      rows="3" 
+                      formControlName="address"
+                      [class.is-invalid]="registrationForm.get('address')?.invalid && registrationForm.get('address')?.touched"></textarea>
+                    <div class="invalid-feedback" *ngIf="registrationForm.get('address')?.hasError('required') && registrationForm.get('address')?.touched">
+                      Address is required
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Medical History -->
+                <div class="mb-3">
+                  <label for="medicalHistory" class="form-label">Medical History</label>
+                  <textarea 
+                    class="form-control" 
+                    id="medicalHistory" 
+                    rows="4" 
+                    formControlName="medicalHistory"
+                    placeholder="Enter any relevant medical history, allergies, medications, etc."></textarea>
+                  <div class="form-text">Include any medical conditions, current medications, allergies, or previous surgeries</div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                  <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="registrationForm.invalid || isSubmitting">
+                    <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <i *ngIf="!isSubmitting" class="bi bi-save me-2"></i>
+                    {{isSubmitting ? 'Registering...' : 'Register Donor'}}
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
-        </mat-card-content>
-      </mat-card>
+          </div>
+        </div>
 
-      <!-- Registration Guidelines -->
-      <mat-card class="guidelines-card">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>info</mat-icon>
-            Donor Registration Guidelines
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-list>
-            <mat-list-item>
-              <mat-icon matListIcon>check_circle</mat-icon>
-              <div matLine>Donor must be between 18-65 years old</div>
-            </mat-list-item>
-            <mat-list-item>
-              <mat-icon matListIcon>check_circle</mat-icon>
-              <div matLine>Weight should be at least 50 kg</div>
-            </mat-list-item>
-            <mat-list-item>
-              <mat-icon matListIcon>check_circle</mat-icon>
-              <div matLine>Must be in good health condition</div>
-            </mat-list-item>
-            <mat-list-item>
-              <mat-icon matListIcon>check_circle</mat-icon>
-              <div matLine>No blood donation in the last 56 days</div>
-            </mat-list-item>
-            <mat-list-item>
-              <mat-icon matListIcon>check_circle</mat-icon>
-              <div matLine>Complete medical history is required</div>
-            </mat-list-item>
-          </mat-list>
-        </mat-card-content>
-      </mat-card>
+        <!-- Registration Guidelines -->
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header bg-light d-flex align-items-center">
+              <i class="bi bi-info-circle me-2"></i>
+              <h6 class="mb-0">Donor Registration Guidelines</h6>
+            </div>
+            <div class="card-body">
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-check-circle text-success me-2"></i>
+                  <span>Donor must be between 18-65 years old</span>
+                </li>
+                <li class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-check-circle text-success me-2"></i>
+                  <span>Weight should be at least 50 kg</span>
+                </li>
+                <li class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-check-circle text-success me-2"></i>
+                  <span>Must be in good health condition</span>
+                </li>
+                <li class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-check-circle text-success me-2"></i>
+                  <span>No blood donation in the last 56 days</span>
+                </li>
+                <li class="list-group-item d-flex align-items-center">
+                  <i class="bi bi-check-circle text-success me-2"></i>
+                  <span>Complete medical history is required</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
-    .registration-container {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-      padding: 20px;
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
     }
-
-    @media (max-width: 768px) {
-      .registration-container {
-        grid-template-columns: 1fr;
-      }
+    
+    .card-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.125);
     }
-
-    mat-card {
-      height: fit-content;
+    
+    .form-label {
+      font-weight: 500;
     }
-
-    .full-width {
-      width: 100%;
-      margin-bottom: 16px;
+    
+    .border {
+      border: 1px solid #dee2e6 !important;
     }
-
-    .contact-section {
-      margin: 20px 0;
+    
+    .text-primary {
+      color: #0d6efd !important;
     }
-
-    .contact-section h3 {
-      color: #3f51b5;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    
+    .btn {
+      border-radius: 0.375rem;
     }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
+    
+    .form-control, .form-select {
+      border-radius: 0.375rem;
     }
-
-    .guidelines-card {
-      background-color: #f8f9fa;
-    }
-
-    .guidelines-card mat-list-item {
-      margin-bottom: 8px;
-    }
-
-    mat-icon[matListIcon] {
-      color: #4caf50;
+    
+    .list-group-item {
+      border: none;
+      padding: 0.75rem 0;
     }
   `]
 })
@@ -220,8 +229,7 @@ export class DonorRegistrationComponent implements OnInit {
     private fb: FormBuilder,
     private donorService: DonorService,
     private userService: UserService,
-    private router: Router,
-    private snackBar: MatSnackBar
+    private router: Router
   ) {
     this.createForm();
   }
@@ -249,7 +257,8 @@ export class DonorRegistrationComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error loading users:', error);
-        this.snackBar.open('Error loading users', 'Close', { duration: 3000 });
+        // You might want to show a Bootstrap alert here instead
+        alert('Error loading users');
       }
     });
   }
@@ -276,14 +285,21 @@ export class DonorRegistrationComponent implements OnInit {
 
       this.donorService.registerDonor(donorData).subscribe({
         next: (donor) => {
-          this.snackBar.open('Donor registered successfully!', 'Close', { duration: 3000 });
+          // You might want to show a Bootstrap toast or alert here
+          alert('Donor registered successfully!');
           this.router.navigate(['/donors/profile', donor.donorId]);
         },
         error: (error) => {
           console.error('Error registering donor:', error);
-          this.snackBar.open('Error registering donor. Please try again.', 'Close', { duration: 3000 });
+          // You might want to show a Bootstrap alert here
+          alert('Error registering donor. Please try again.');
           this.isSubmitting = false;
         }
+      });
+    } else {
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.registrationForm.controls).forEach(key => {
+        this.registrationForm.get(key)?.markAsTouched();
       });
     }
   }
