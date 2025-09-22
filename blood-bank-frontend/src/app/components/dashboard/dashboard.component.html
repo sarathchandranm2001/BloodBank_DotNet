@@ -1,119 +1,158 @@
-<mat-toolbar color="primary">
-  <span>Blood Bank Management System</span>
-  <span class="spacer"></span>
-  <span *ngIf="currentUser">Welcome, {{ currentUser.name }} ({{ getUserRoleName() }})</span>
-  <button mat-icon-button (click)="logout()">
-    <mat-icon>logout</mat-icon>
-  </button>
-</mat-toolbar>
+<!-- Bootstrap CSS -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
 
-<div class="dashboard-container">
-  <div class="welcome-section">
+<!-- Bootstrap Icons (if you use icons like eye, email, etc.) -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+  rel="stylesheet"
+/>
+
+<!-- Bootstrap JS (optional, for modals, dropdowns, etc.) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
+  <a class="navbar-brand" href="#">Blood Bank Management System</a>
+  <div class="ms-auto d-flex align-items-center">
+    <span *ngIf="currentUser" class="text-white me-3">
+      Welcome, {{ currentUser.name }} ({{ getUserRoleName() }})
+    </span>
+    <button class="btn btn-outline-light btn-sm" (click)="logout()">
+      <i class="bi bi-box-arrow-right"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- Dashboard -->
+<div class="container mt-4">
+  <div class="text-center mb-4">
     <h1>Welcome to Blood Bank Management System</h1>
-    <p *ngIf="currentUser">Hello {{ currentUser.name }}, you are logged in as {{ getUserRoleName() }}</p>
+    <p *ngIf="currentUser">
+      Hello {{ currentUser.name }}, you are logged in as {{ getUserRoleName() }}
+    </p>
   </div>
 
-  <div class="dashboard-cards">
+  <div class="row g-4">
     <!-- Admin Features -->
-    <mat-card *ngIf="currentUser?.role === UserRole.Admin" class="feature-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>admin_panel_settings</mat-icon>
-          Administration
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Manage users, donors, recipients, and blood inventory</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="navigateTo('/admin/dashboard')">Admin Dashboard</button>
-        <button mat-raised-button color="accent" (click)="navigateTo('/admin/reports')">View Reports</button>
-      </mat-card-actions>
-    </mat-card>
+    <div class="col-md-6 col-lg-4" *ngIf="currentUser?.role === UserRole.Admin">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-shield-lock-fill me-2"></i> Administration
+          </h5>
+          <p class="card-text">
+            Manage users, donors, recipients, and blood inventory
+          </p>
+          <button class="btn btn-primary me-2" (click)="navigateTo('/admin/dashboard')">
+            Admin Dashboard
+          </button>
+          <button class="btn btn-secondary" (click)="navigateTo('/admin/reports')">
+            View Reports
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <!-- Donor Management (Admin/Staff) -->
-    <mat-card *ngIf="currentUser?.role === UserRole.Admin" class="feature-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>people</mat-icon>
-          Donor Management
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Register donors, track donations, check eligibility, manage donor records</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="navigateTo('/admin/users')">View All Donors</button>
-        <button mat-raised-button color="accent" (click)="navigateTo('/donors')">Register Donor</button>
-      </mat-card-actions>
-    </mat-card>
+    <!-- Donor Management -->
+    <div class="col-md-6 col-lg-4" *ngIf="currentUser?.role === UserRole.Admin">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-people-fill me-2"></i> Donor Management
+          </h5>
+          <p class="card-text">
+            Register donors, track donations, check eligibility, manage donor records
+          </p>
+          <button class="btn btn-primary me-2" (click)="navigateTo('/admin/users')">
+            View All Donors
+          </button>
+          <button class="btn btn-secondary" (click)="navigateTo('/donors')">
+            Register Donor
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Donor Features -->
-    <mat-card *ngIf="currentUser?.role === UserRole.Donor || currentUser?.role === UserRole.Admin" class="feature-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>volunteer_activism</mat-icon>
-          Donor Services
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Manage donor profile, view donation history, check eligibility</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="navigateTo('/donors')">My Profile</button>
-        <button mat-raised-button color="accent" (click)="navigateTo('/donors')">Donation History</button>
-      </mat-card-actions>
-    </mat-card>
+    <div class="col-md-6 col-lg-4" *ngIf="currentUser?.role === UserRole.Donor || currentUser?.role === UserRole.Admin">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-heart-fill me-2"></i> Donor Services
+          </h5>
+          <p class="card-text">
+            Manage donor profile, view donation history, check eligibility
+          </p>
+          <button class="btn btn-primary me-2" (click)="navigateTo('/donors')">
+            My Profile
+          </button>
+          <button class="btn btn-secondary" (click)="navigateTo('/donors')">
+            Donation History
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Recipient Features -->
-    <mat-card *ngIf="currentUser?.role === UserRole.Recipient || currentUser?.role === UserRole.Admin" class="feature-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>local_hospital</mat-icon>
-          Recipient Services
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Request blood, view request status, manage recipient profile</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="navigateTo('/recipient')">Blood Requests</button>
-        <button mat-raised-button color="accent" (click)="navigateTo('/recipient')">My Profile</button>
-      </mat-card-actions>
-    </mat-card>
+    <div class="col-md-6 col-lg-4" *ngIf="currentUser?.role === UserRole.Recipient || currentUser?.role === UserRole.Admin">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-hospital-fill me-2"></i> Recipient Services
+          </h5>
+          <p class="card-text">
+            Request blood, view request status, manage recipient profile
+          </p>
+          <button class="btn btn-primary me-2" (click)="navigateTo('/recipient')">
+            Blood Requests
+          </button>
+          <button class="btn btn-secondary" (click)="navigateTo('/recipient')">
+            My Profile
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Blood Inventory -->
-    <mat-card *ngIf="currentUser?.role === UserRole.Admin" class="feature-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>inventory</mat-icon>
-          Blood Inventory
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Monitor blood stock levels, manage inventory, track expiry</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="navigateTo('/admin/inventory')">View Inventory</button>
-        <button mat-raised-button color="warn" (click)="navigateTo('/admin/inventory')">Low Stock Alerts</button>
-      </mat-card-actions>
-    </mat-card>
+    <div class="col-md-6 col-lg-4" *ngIf="currentUser?.role === UserRole.Admin">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-box-seam-fill me-2"></i> Blood Inventory
+          </h5>
+          <p class="card-text">
+            Monitor blood stock levels, manage inventory, track expiry
+          </p>
+          <button class="btn btn-primary me-2" (click)="navigateTo('/admin/inventory')">
+            View Inventory
+          </button>
+          <button class="btn btn-danger" (click)="navigateTo('/admin/inventory')">
+            Low Stock Alerts
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Blood Stock Management -->
-    <mat-card *ngIf="currentUser?.role === UserRole.Admin" class="feature-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>science</mat-icon>
-          Blood Stock Management
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Individual blood unit tracking, FIFO issuing, expiry management</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="navigateTo('/admin/inventory')">Manage Stock</button>
-        <button mat-raised-button color="accent" (click)="navigateTo('/admin/inventory')">Issue Blood</button>
-      </mat-card-actions>
-    </mat-card>
+    <div class="col-md-6 col-lg-4" *ngIf="currentUser?.role === UserRole.Admin">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-droplet-fill me-2"></i> Blood Stock Management
+          </h5>
+          <p class="card-text">
+            Individual blood unit tracking, FIFO issuing, expiry management
+          </p>
+          <button class="btn btn-primary me-2" (click)="navigateTo('/admin/inventory')">
+            Manage Stock
+          </button>
+          <button class="btn btn-secondary" (click)="navigateTo('/admin/inventory')">
+            Issue Blood
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

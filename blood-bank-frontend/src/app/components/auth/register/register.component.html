@@ -1,80 +1,129 @@
-<div class="register-container">
-  <mat-card class="register-card">
-    <mat-card-header>
-      <mat-card-title>Blood Bank Management</mat-card-title>
-      <mat-card-subtitle>Create your account</mat-card-subtitle>
-    </mat-card-header>
+<!-- Bootstrap CSS -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
 
-    <mat-card-content>
-      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-        <mat-form-field class="full-width">
-          <mat-label>Full Name</mat-label>
-          <input matInput formControlName="name" placeholder="Enter your full name">
-          <mat-icon matSuffix>person</mat-icon>
-          <mat-error *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+<!-- Bootstrap Icons (if you use icons like eye, email, etc.) -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+  rel="stylesheet"
+/>
+
+<!-- Bootstrap JS (optional, for modals, dropdowns, etc.) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="card shadow-lg p-4" style="width: 450px; border-radius: 15px;">
+    <div class="card-body">
+      <h3 class="card-title text-center mb-3">Blood Bank Management</h3>
+      <h6 class="card-subtitle text-muted text-center mb-4">Create your account</h6>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <!-- Full Name -->
+        <div class="mb-3">
+          <label for="name" class="form-label">Full Name</label>
+          <div class="input-group">
+            <input
+              type="text"
+              id="name"
+              class="form-control"
+              formControlName="name"
+              placeholder="Enter your full name"
+            />
+            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+          </div>
+          <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched" class="text-danger small mt-1">
             {{ getErrorMessage('name') }}
-          </mat-error>
-        </mat-form-field>
+          </div>
+        </div>
 
-        <mat-form-field class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="Enter your email">
-          <mat-icon matSuffix>email</mat-icon>
-          <mat-error *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+        <!-- Email -->
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <div class="input-group">
+            <input
+              type="email"
+              id="email"
+              class="form-control"
+              formControlName="email"
+              placeholder="Enter your email"
+            />
+            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+          </div>
+          <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="text-danger small mt-1">
             {{ getErrorMessage('email') }}
-          </mat-error>
-        </mat-form-field>
+          </div>
+        </div>
 
-        <mat-form-field class="full-width">
-          <mat-label>Role</mat-label>
-          <mat-select formControlName="role">
-            <mat-option *ngFor="let role of userRoles" [value]="role.value">
-              {{ role.name }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched">
+        <!-- Role -->
+        <div class="mb-3">
+          <label for="role" class="form-label">Role</label>
+          <select id="role" class="form-select" formControlName="role">
+            <option *ngFor="let role of userRoles" [value]="role.value">{{ role.name }}</option>
+          </select>
+          <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="text-danger small mt-1">
             {{ getErrorMessage('role') }}
-          </mat-error>
-        </mat-form-field>
+          </div>
+        </div>
 
-        <mat-form-field class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" 
-                 placeholder="Enter your password">
-          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          <mat-error *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+        <!-- Password -->
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <div class="input-group">
+            <input
+              [type]="hidePassword ? 'password' : 'text'"
+              id="password"
+              class="form-control"
+              formControlName="password"
+              placeholder="Enter your password"
+            />
+            <button class="btn btn-outline-secondary" type="button" (click)="hidePassword = !hidePassword">
+              <i class="bi" [ngClass]="hidePassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+            </button>
+          </div>
+          <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="text-danger small mt-1">
             {{ getErrorMessage('password') }}
-          </mat-error>
-        </mat-form-field>
+          </div>
+        </div>
 
-        <mat-form-field class="full-width">
-          <mat-label>Confirm Password</mat-label>
-          <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword" 
-                 placeholder="Confirm your password">
-          <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
-            <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          <mat-error *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+        <!-- Confirm Password -->
+        <div class="mb-3">
+          <label for="confirmPassword" class="form-label">Confirm Password</label>
+          <div class="input-group">
+            <input
+              [type]="hideConfirmPassword ? 'password' : 'text'"
+              id="confirmPassword"
+              class="form-control"
+              formControlName="confirmPassword"
+              placeholder="Confirm your password"
+            />
+            <button class="btn btn-outline-secondary" type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
+              <i class="bi" [ngClass]="hideConfirmPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+            </button>
+          </div>
+          <div *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched" class="text-danger small mt-1">
             {{ getErrorMessage('confirmPassword') }}
-          </mat-error>
-        </mat-form-field>
+          </div>
+        </div>
 
-        <button mat-raised-button color="primary" type="submit" 
-                [disabled]="isLoading" class="register-button">
+        <!-- Submit button -->
+        <button
+          class="btn btn-primary w-100"
+          type="submit"
+          [disabled]="isLoading">
           <span *ngIf="!isLoading">Create Account</span>
           <span *ngIf="isLoading">Creating Account...</span>
         </button>
       </form>
-    </mat-card-content>
 
-    <mat-card-actions>
-      <div style="text-align: center; width: 100%;">
-        <p>Already have an account? 
-          <a routerLink="/login" class="login-link">Sign in here</a>
+      <!-- Login link -->
+      <div class="text-center mt-3">
+        <p class="mb-0">
+          Already have an account?
+          <a routerLink="/login">Sign in here</a>
         </p>
       </div>
-    </mat-card-actions>
-  </mat-card>
+    </div>
+  </div>
 </div>
