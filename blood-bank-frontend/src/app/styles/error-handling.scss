@@ -1,0 +1,184 @@
+/* Global Error Handling Styles */
+
+/* Snackbar styles for different message types */
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.warning-snackbar {
+  background-color: #ff9800 !important;
+  color: white !important;
+}
+
+.info-snackbar {
+  background-color: #2196f3 !important;
+  color: white !important;
+}
+
+/* Loading states */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.loading-container mat-progress-spinner {
+  margin-bottom: 20px;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Error states */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: #666;
+}
+
+.error-container mat-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: #f44336;
+  margin-bottom: 15px;
+}
+
+.error-container h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.error-container p {
+  margin: 0 0 20px 0;
+  max-width: 400px;
+}
+
+/* Empty states */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.empty-state mat-icon {
+  font-size: 5rem;
+  width: 5rem;
+  height: 5rem;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-weight: 400;
+}
+
+.empty-state p {
+  margin: 0;
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+/* Form validation styles */
+.form-field-error {
+  color: #f44336;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.mat-form-field.mat-form-field-invalid .mat-form-field-outline-thick {
+  color: #f44336;
+}
+
+/* Utility classes */
+.text-success { color: #4caf50 !important; }
+.text-error { color: #f44336 !important; }
+.text-warning { color: #ff9800 !important; }
+.text-info { color: #2196f3 !important; }
+
+.bg-success { background-color: #4caf50 !important; }
+.bg-error { background-color: #f44336 !important; }
+.bg-warning { background-color: #ff9800 !important; }
+.bg-info { background-color: #2196f3 !important; }
+
+/* Status indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-indicator.active {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-indicator.inactive {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-indicator.pending {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-indicator.processing {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .loading-container,
+  .error-container,
+  .empty-state {
+    padding: 20px;
+  }
+  
+  .error-container mat-icon,
+  .empty-state mat-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+  }
+}

@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { ErrorHandlerService } from './error-handler.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,10 @@ import { environment } from '../../environments/environment';
 export class ApiService {
   private readonly apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private errorHandler: ErrorHandlerService
+  ) {}
 
   private getHttpOptions(): { headers: HttpHeaders } {
     const token = localStorage.getItem('bloodbank_token');
@@ -23,8 +27,7 @@ export class ApiService {
   }
 
   private handleError(error: any): Observable<never> {
-    console.error('API Error:', error);
-    return throwError(() => error);
+    return this.errorHandler.handleError(error);
   }
 
   // Generic HTTP methods
@@ -56,6 +59,17 @@ export class ApiService {
       .pipe(
         catchError(this.handleError)
       );
+  }
+
+  // File download/blob response
+  getBlob(endpoint: string, params?: HttpParams): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}${endpoint}`, {
+      ...this.getHttpOptions(),
+      params,
+      responseType: 'blob'
+    }).pipe(
+      catchError(this.handleError)
+    );
   }
 
   // File upload

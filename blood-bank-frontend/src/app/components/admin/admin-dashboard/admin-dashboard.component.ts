@@ -7,7 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
+import { AdminService, AdminDashboardStats } from '../../../services/admin.service';
+import { ErrorHandlerService, ApiError } from '../../../services/error-handler.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -26,12 +29,23 @@ import { AuthService } from '../../../services/auth.service';
     <div class="admin-dashboard-container">
       <!-- Header -->
       <div class="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <p>Manage blood bank operations and monitor system health</p>
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p>Manage blood bank operations and monitor system health</p>
+        </div>
+        <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="isLoading">
+          <mat-icon>refresh</mat-icon> Refresh Data
+        </button>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-progress-spinner mode="indeterminate" diameter="60"></mat-progress-spinner>
+        <p>Loading dashboard data...</p>
       </div>
 
       <!-- Quick Stats -->
-      <div class="stats-grid">
+      <div class="stats-grid" *ngIf="!isLoading">
         <mat-card class="stat-card">
           <mat-card-content>
             <div class="stat-content">
@@ -75,6 +89,54 @@ import { AuthService } from '../../../services/auth.service';
               <div class="stat-info">
                 <h3>{{ totalBloodUnits }}</h3>
                 <p>Blood Units Available</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-content">
+              <mat-icon color="warn">assignment</mat-icon>
+              <div class="stat-info">
+                <h3>{{ pendingRequests }}</h3>
+                <p>Pending Requests</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-content">
+              <mat-icon color="warn">warning</mat-icon>
+              <div class="stat-info">
+                <h3>{{ lowStockAlerts }}</h3>
+                <p>Low Stock Alerts</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-content">
+              <mat-icon color="accent">schedule</mat-icon>
+              <div class="stat-info">
+                <h3>{{ expiringSoonUnits }}</h3>
+                <p>Expiring Soon</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-content">
+              <mat-icon color="primary">trending_up</mat-icon>
+              <div class="stat-info">
+                <h3>{{ totalDonationsThisMonth }}</h3>
+                <p>Donations This Month</p>
               </div>
             </div>
           </mat-card-content>
@@ -161,8 +223,15 @@ import { AuthService } from '../../../services/auth.service';
     }
 
     .dashboard-header {
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-header div {
+      text-align: left;
     }
 
     .dashboard-header h1 {
@@ -175,6 +244,21 @@ import { AuthService } from '../../../services/auth.service';
       color: #666;
       font-size: 1.1rem;
       margin: 10px 0 0 0;
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      text-align: center;
+    }
+
+    .loading-container p {
+      margin-top: 20px;
+      color: #666;
+      font-size: 1.1rem;
     }
 
     .stats-grid {
@@ -257,18 +341,62 @@ export class AdminDashboardComponent implements OnInit {
   totalDonors = 0;
   totalRecipients = 0;
   totalBloodUnits = 0;
+  pendingRequests = 0;
+  lowStockAlerts = 0;
+  expiringSoonUnits = 0;
+  totalDonationsThisMonth = 0;
+  activeUsers = 0;
+  isLoading = true;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private adminService: AdminService,
+    private snackBar: MatSnackBar,
+    private errorHandler: ErrorHandlerService
+  ) {}
 
   ngOnInit(): void {
     this.loadDashboardData();
   }
 
   private loadDashboardData(): void {
-    // TODO: Load actual data from services
-    this.totalUsers = 150;
-    this.totalDonors = 75;
-    this.totalRecipients = 60;
-    this.totalBloodUnits = 320;
+    this.isLoading = true;
+    
+    this.adminService.getDashboardStats().subscribe({
+      next: (stats: AdminDashboardStats) => {
+        this.totalUsers = stats.totalUsers;
+        this.totalDonors = stats.totalDonors;
+        this.totalRecipients = stats.totalRecipients;
+        this.totalBloodUnits = stats.totalBloodUnits;
+        this.pendingRequests = stats.pendingRequests;
+        this.lowStockAlerts = stats.lowStockAlerts;
+        this.expiringSoonUnits = stats.expiringSoonUnits;
+        this.totalDonationsThisMonth = stats.totalDonationsThisMonth;
+        this.activeUsers = stats.activeUsers;
+        this.isLoading = false;
+      },
+      error: (error: ApiError) => {
+        this.errorHandler.handleApiError(error, 'Loading dashboard data');
+        this.isLoading = false;
+        this.setDefaultValues();
+      }
+    });
+  }
+
+  private setDefaultValues(): void {
+    // Fallback values if API fails
+    this.totalUsers = 0;
+    this.totalDonors = 0;
+    this.totalRecipients = 0;
+    this.totalBloodUnits = 0;
+    this.pendingRequests = 0;
+    this.lowStockAlerts = 0;
+    this.expiringSoonUnits = 0;
+    this.totalDonationsThisMonth = 0;
+    this.activeUsers = 0;
+  }
+
+  refreshData(): void {
+    this.loadDashboardData();
   }
 }

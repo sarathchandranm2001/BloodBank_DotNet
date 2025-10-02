@@ -596,13 +596,29 @@ export class RecipientDashboardComponent implements OnInit {
   loadDashboardData(): void {
     this.isLoading = true;
     
-    // Load profile
+    // Load profile and dashboard stats
     this.recipientService.getRecipientProfile().subscribe({
       next: (recipient: Recipient) => {
         this.recipient = recipient;
       },
       error: (error: any) => {
         console.error('Failed to load profile:', error);
+        this.showMessage('Failed to load profile data');
+      }
+    });
+
+    // Load dashboard statistics
+    this.recipientService.getDashboardStats().subscribe({
+      next: (stats: any) => {
+        // Update recipient with latest stats
+        if (this.recipient) {
+          this.recipient.totalRequests = stats.totalRequests;
+          this.recipient.pendingRequests = stats.pendingRequests;
+        }
+        console.log('Dashboard stats loaded:', stats);
+      },
+      error: (error: any) => {
+        console.error('Failed to load dashboard stats:', error);
       }
     });
 
@@ -613,6 +629,7 @@ export class RecipientDashboardComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Failed to load requests:', error);
+        this.showMessage('Failed to load recent requests');
       }
     });
 
@@ -623,6 +640,7 @@ export class RecipientDashboardComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Failed to load availability:', error);
+        this.showMessage('Failed to load blood availability data');
       },
       complete: () => {
         this.isLoading = false;

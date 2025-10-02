@@ -30,6 +30,14 @@ import { RouterModule } from '@angular/router';
           <ul class="nav nav-tabs nav-tabs-no-border">
             <li class="nav-item">
               <a class="nav-link" 
+                 routerLink="/donors/overview" 
+                 routerLinkActive="active">
+                <i class="bi bi-speedometer2 me-2"></i>
+                Overview
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" 
                  routerLink="/donors/list" 
                  routerLinkActive="active">
                 <i class="bi bi-people me-2"></i>

@@ -29,6 +29,11 @@ export class DonorService {
     return this.http.get<Donor>(`${this.apiUrl}/${id}`);
   }
 
+  // Get current donor profile
+  getDonorProfile(): Observable<Donor> {
+    return this.http.get<Donor>(`${this.apiUrl}/profile`);
+  }
+
   // Register new donor
   registerDonor(donorData: DonorRegistration): Observable<Donor> {
     return this.http.post<Donor>(this.apiUrl, donorData);
@@ -72,5 +77,35 @@ export class DonorService {
   // Get donors by blood group
   getDonorsByBloodGroup(bloodGroup: string): Observable<Donor[]> {
     return this.http.get<Donor[]>(`${this.apiUrl}/blood-group/${bloodGroup}`);
+  }
+
+  // Get donor dashboard statistics (Admin only)
+  getDashboardStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/dashboard/stats`);
+  }
+
+  // Get donations by donor
+  getDonationsByDonor(donorId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/donations/donor/${donorId}`);
+  }
+
+  // Create new donation record (Admin only)
+  createDonation(donationData: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/donations`, donationData);
+  }
+
+  // Get all donations (Admin only)
+  getAllDonations(page: number = 1, pageSize: number = 20, filters?: any): Observable<any[]> {
+    let params = `?page=${page}&pageSize=${pageSize}`;
+    if (filters?.bloodGroup) params += `&bloodGroup=${filters.bloodGroup}`;
+    if (filters?.startDate) params += `&startDate=${filters.startDate}`;
+    if (filters?.endDate) params += `&endDate=${filters.endDate}`;
+    
+    return this.http.get<any[]>(`${environment.apiUrl}/donations${params}`);
+  }
+
+  // Get donation statistics for dashboard
+  getDonationDashboardStats(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/donations/stats/dashboard`);
   }
 }

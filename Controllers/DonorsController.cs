@@ -98,6 +98,49 @@ namespace BloodBankManagement.Controllers
             return Ok(donorDto);
         }
 
+        // GET: api/donors/profile
+        [HttpGet("profile")]
+        public async Task<ActionResult<DonorDto>> GetDonorProfile()
+        {
+            var currentUserId = GetCurrentUserId();
+            
+            var donor = await _context.Donors
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.UserId == currentUserId);
+
+            if (donor == null)
+            {
+                return NotFound(new { message = "Donor profile not found" });
+            }
+
+            var donorDto = new DonorDto
+            {
+                DonorId = donor.DonorId,
+                UserId = donor.UserId,
+                UserName = donor.User.Name,
+                UserEmail = donor.User.Email,
+                BloodGroup = donor.BloodGroup,
+                BloodGroupDisplay = donor.BloodGroup.ToString(),
+                LastDonationDate = donor.LastDonationDate,
+                MedicalHistory = donor.MedicalHistory,
+                ContactInfo = new ContactInfoDto
+                {
+                    Phone = donor.ContactInfo.Phone,
+                    Address = donor.ContactInfo.Address,
+                    City = donor.ContactInfo.City,
+                    State = donor.ContactInfo.State,
+                    ZipCode = donor.ContactInfo.ZipCode,
+                    Country = donor.ContactInfo.Country
+                },
+                IsEligibleToDonate = donor.IsEligibleToDonate,
+                NextEligibleDonationDate = donor.NextEligibleDonationDate,
+                DaysSinceLastDonation = donor.LastDonationDate.HasValue ? 
+                    (int)(DateTime.UtcNow - donor.LastDonationDate.Value).TotalDays : 0
+            };
+
+            return Ok(donorDto);
+        }
+
         // POST: api/donors
         [HttpPost]
         [Authorize(Roles = "Admin")]
@@ -317,7 +360,7 @@ namespace BloodBankManagement.Controllers
 
         // GET: api/donors/{id}/history
         [HttpGet("{id}/history")]
-        public async Task<ActionResult<DonationHistoryDto>> GetDonationHistory(int id)
+        public async Task<ActionResult<DonorStatisticsDto>> GetDonationHistory(int id)
         {
             var currentUserId = GetCurrentUserId();
             var currentUserRole = GetCurrentUserRole();
@@ -337,22 +380,42 @@ namespace BloodBankManagement.Controllers
                 return Forbid();
             }
 
-            var historyDto = new DonationHistoryDto
+            var donations = await _context.Donations
+                .Where(d => d.DonorId == id)
+                .OrderBy(d => d.DonationDate)
+                .ToListAsync();
+
+            var today = DateTime.UtcNow.Date;
+            var thisMonth = new DateTime(today.Year, today.Month, 1);
+            var thisYear = new DateTime(today.Year, 1, 1);
+
+            var historyDto = new DonorStatisticsDto
             {
                 DonorId = donor.DonorId,
                 DonorName = donor.User.Name,
-                LastDonationDate = donor.LastDonationDate,
-                TotalDonations = donor.LastDonationDate.HasValue ? 1 : 0, // Simple count for now
-                DonationRecords = donor.LastDonationDate.HasValue ? 
-                    new List<DonationRecordDto> 
-                    { 
-                        new DonationRecordDto 
-                        { 
-                            DonationDate = donor.LastDonationDate.Value,
-                            Location = "Blood Bank",
-                            Notes = "Donation recorded"
-                        } 
-                    } : new List<DonationRecordDto>()
+                BloodGroup = donor.BloodGroup.ToString(),
+                TotalDonations = donations.Count,
+                TotalVolumeContributed = donations.Sum(d => d.VolumeCollected),
+                FirstDonationDate = donations.FirstOrDefault()?.DonationDate,
+                LastDonationDate = donations.LastOrDefault()?.DonationDate,
+                DaysSinceLastDonation = donor.DaysSinceLastDonation,
+                AverageDaysBetweenDonations = donations.Count > 1 ? 
+                    (donations.Last().DonationDate - donations.First().DonationDate).TotalDays / (donations.Count - 1) : 0,
+                IsCurrentlyEligible = donor.IsEligibleToDonate,
+                NextEligibleDate = donor.NextEligibleDonationDate,
+                ConsecutiveDonations = donations.Count,
+                DonationsThisYear = donations.Count(d => d.DonationDate >= thisYear),
+                DonationsThisMonth = donations.Count(d => d.DonationDate >= thisMonth),
+                YearlyStats = donations
+                    .GroupBy(d => d.DonationDate.Year)
+                    .Select(g => new YearlyDonationStatsDto
+                    {
+                        Year = g.Key,
+                        Count = g.Count(),
+                        Volume = g.Sum(d => d.VolumeCollected)
+                    })
+                    .OrderBy(y => y.Year)
+                    .ToList()
             };
 
             return Ok(historyDto);
@@ -450,6 +513,67 @@ namespace BloodBankManagement.Controllers
                 .ToListAsync();
 
             return Ok(donors);
+        }
+
+        // GET: api/donors/dashboard/stats
+        [HttpGet("dashboard/stats")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<DonorDashboardStatsDto>> GetDonorDashboardStats()
+        {
+            var today = DateTime.UtcNow.Date;
+            var thisMonth = new DateTime(today.Year, today.Month, 1);
+            var thisYear = new DateTime(today.Year, 1, 1);
+
+            var stats = new DonorDashboardStatsDto
+            {
+                TotalActiveDonors = await _context.Donors.CountAsync(),
+                EligibleDonors = await _context.Donors.CountAsync(d => d.IsEligibleToDonate),
+                DonationsThisMonth = await _context.Donations.CountAsync(d => d.DonationDate >= thisMonth),
+                DonationsThisYear = await _context.Donations.CountAsync(d => d.DonationDate >= thisYear),
+                TotalVolumeThisMonth = await _context.Donations
+                    .Where(d => d.DonationDate >= thisMonth)
+                    .SumAsync(d => (int?)d.VolumeCollected) ?? 0,
+                TotalVolumeThisYear = await _context.Donations
+                    .Where(d => d.DonationDate >= thisYear)
+                    .SumAsync(d => (int?)d.VolumeCollected) ?? 0,
+
+                BloodGroupStats = await _context.Donors
+                    .GroupBy(d => d.BloodGroup)
+                    .Select(g => new BloodGroupDonationStatsDto
+                    {
+                        BloodGroup = g.Key.ToString(),
+                        DonorCount = g.Count(),
+                        DonationsThisMonth = _context.Donations
+                            .Count(d => d.BloodGroup == g.Key && d.DonationDate >= thisMonth),
+                        TotalVolume = _context.Donations
+                            .Where(d => d.BloodGroup == g.Key)
+                            .Sum(d => (int?)d.VolumeCollected) ?? 0,
+                        LastDonation = _context.Donations
+                            .Where(d => d.BloodGroup == g.Key)
+                            .Max(d => (DateTime?)d.DonationDate)
+                    })
+                    .ToListAsync(),
+
+                RecentDonations = await _context.Donations
+                    .Include(d => d.Donor)
+                    .ThenInclude(d => d.User)
+                    .OrderByDescending(d => d.DonationDate)
+                    .Take(10)
+                    .Select(d => new RecentDonationDto
+                    {
+                        DonationId = d.DonationId,
+                        DonorName = d.Donor.User.Name,
+                        BloodGroup = d.BloodGroup.ToString(),
+                        DonationDate = d.DonationDate,
+                        Volume = d.VolumeCollected,
+                        Status = d.Status.ToString()
+                    })
+                    .ToListAsync(),
+
+                UpcomingAppointments = new List<UpcomingAppointmentDto>() // Empty for now, appointments would need separate model
+            };
+
+            return Ok(stats);
         }
 
         private int GetCurrentUserId()

@@ -44,9 +44,14 @@ export interface DonationHistory {
   donorName: string;
   bloodGroup: string;
   totalDonations: number;
+  totalVolumeContributed: number;
   lastDonationDate?: Date;
   firstDonationDate?: Date;
+  daysSinceLastDonation: number;
   averageDaysBetweenDonations: number;
   isCurrentlyEligible: boolean;
   nextEligibleDate?: Date;
+  consecutiveDonations: number;
+  donationsThisYear: number;
+  donationsThisMonth: number;
 }

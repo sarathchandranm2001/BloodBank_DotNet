@@ -17,12 +17,13 @@ const routes: Routes = [
     path: '',
     component: DonorDashboardComponent,
     children: [
-      { path: '', redirectTo: 'list', pathMatch: 'full' },
+      { path: '', redirectTo: 'overview', pathMatch: 'full' },
+      { path: 'overview', loadComponent: () => import('./components/donor-overview/donor-overview.component').then(m => m.DonorOverviewComponent) },
       { path: 'list', component: DonorListComponent },
       { path: 'register', component: DonorRegistrationComponent },
       { path: 'profile/:id', component: DonorProfileComponent },
       { path: 'eligibility/:id', component: DonorEligibilityComponent },
-      // { path: 'history/:id', component: DonationHistoryComponent },
+      { path: 'history/:id', loadComponent: () => import('./components/donation-history/donation-history.component').then(m => m.DonationHistoryComponent) },
       // { path: 'donate/:id', component: BloodDonationComponent }
     ]
   }

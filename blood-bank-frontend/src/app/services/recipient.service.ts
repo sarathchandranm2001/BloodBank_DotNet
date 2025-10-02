@@ -82,4 +82,9 @@ export class RecipientService {
   getBloodAvailabilityByGroup(bloodGroup: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/bloodstock/availability/${bloodGroup}`);
   }
+
+  // Dashboard Statistics
+  getDashboardStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/recipients/dashboard-stats`);
+  }
 }

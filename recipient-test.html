@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipient System Test - Blood Bank Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e91e63 0%, #ad1457 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #e91e63;
+        }
+
+        .section h2 {
+            color: #e91e63;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 500;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .test-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .test-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #e91e63 0%, #ad1457 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(233, 30, 99, 0.4);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        }
+
+        .btn.warning {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #2196F3;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .results h4 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+
+        .results pre {
+            background: #263238;
+            color: #b2dfdb;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            overflow-x: auto;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d2e;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status.warning {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #e91e63;
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #e91e63;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .endpoint-url {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin: 10px 0;
+            border: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🩸 Recipient System Test</h1>
+            <p>Testing all recipient-related API endpoints and functionality</p>
+        </div>
+
+        <div class="content">
+            <!-- Data Seeding Section -->
+            <div class="section">
+                <h2>🌱 Data Seeding</h2>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h3>Seed Test Data</h3>
+                        <p>Create test users and sample data for testing</p>
+                        <button class="btn success" onclick="seedTestData()">Seed Test Data</button>
+                        <div id="seedResult" class="results" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication Section -->
+            <div class="section">
+                <h2>🔐 Authentication & Setup</h2>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h3>Login as Recipient</h3>
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" id="loginEmail" value="recipient@test.com" placeholder="Enter recipient email">
+                        </div>
+                        <div class="form-group">
+                            <label>Password:</label>
+                            <input type="password" id="loginPassword" value="Recipient123!" placeholder="Enter password">
+                        </div>
+                        <button class="btn" onclick="loginUser()">Login</button>
+                        <div id="authStatus" class="results" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="test-card">
+                        <h3>Current User Info</h3>
+                        <button class="btn secondary" onclick="getCurrentUser()">Get Current User</button>
+                        <div id="currentUserResult" class="results" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recipient Profile Section -->
+            <div class="section">
+                <h2>👤 Recipient Profile Management</h2>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h3>Get Recipient Profile</h3>
+                        <div class="endpoint-url">GET /api/recipients/profile</div>
+                        <button class="btn" onclick="getRecipientProfile()">Get Profile</button>
+                        <div id="profileResult" class="results" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="test-card">
+                        <h3>Get Dashboard Statistics</h3>
+                        <div class="endpoint-url">GET /api/recipients/dashboard-stats</div>
+                        <button class="btn success" onclick="getDashboardStats()">Get Dashboard Stats</button>
+                        <div id="dashboardStatsResult" class="results" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blood Requests Section -->
+            <div class="section">
+                <h2>🩸 Blood Request Management</h2>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h3>Get My Blood Requests</h3>
+                        <div class="endpoint-url">GET /api/bloodrequests/my-requests</div>
+                        <button class="btn" onclick="getMyBloodRequests()">Get My Requests</button>
+                        <div id="myRequestsResult" class="results" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="test-card">
+                        <h3>Create Blood Request</h3>
+                        <div class="endpoint-url">POST /api/bloodrequests</div>
+                        <div class="form-group">
+                            <label>Blood Group:</label>
+                            <select id="requestBloodGroup">
+                                <option value="0">A+</option>
+                                <option value="1">A-</option>
+                                <option value="2">B+</option>
+                                <option value="3">B-</option>
+                                <option value="4">AB+</option>
+                                <option value="5">AB-</option>
+                                <option value="6">O+</option>
+                                <option value="7">O-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Units Required:</label>
+                            <input type="number" id="unitsRequired" value="2" min="1" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Urgency:</label>
+                            <select id="requestUrgency">
+                                <option value="0">Low</option>
+                                <option value="1">Medium</option>
+                                <option value="2">High</option>
+                                <option value="3">Critical</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Request Reason:</label>
+                            <textarea id="requestReason" rows="3" placeholder="Reason for blood request">Surgery preparation</textarea>
+                        </div>
+                        <button class="btn success" onclick="createBloodRequest()">Create Request</button>
+                        <div id="createRequestResult" class="results" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blood Availability Section -->
+            <div class="section">
+                <h2>📊 Blood Availability</h2>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h3>Check Blood Availability</h3>
+                        <div class="endpoint-url">GET /api/bloodstock/availability</div>
+                        <button class="btn secondary" onclick="getBloodAvailability()">Check Availability</button>
+                        <div id="availabilityResult" class="results" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="test-card">
+                        <h3>Check Specific Blood Group</h3>
+                        <div class="endpoint-url">GET /api/bloodstock/availability/{group}</div>
+                        <div class="form-group">
+                            <label>Blood Group:</label>
+                            <select id="specificBloodGroup">
+                                <option value="APositive">A+</option>
+                                <option value="ANegative">A-</option>
+                                <option value="BPositive">B+</option>
+                                <option value="BNegative">B-</option>
+                                <option value="ABPositive">AB+</option>
+                                <option value="ABNegative">AB-</option>
+                                <option value="OPositive">O+</option>
+                                <option value="ONegative">O-</option>
+                            </select>
+                        </div>
+                        <button class="btn warning" onclick="getSpecificBloodAvailability()">Check Specific</button>
+                        <div id="specificAvailabilityResult" class="results" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Summary -->
+            <div class="section">
+                <h2>📈 System Summary</h2>
+                <div id="systemSummary" class="stats-grid">
+                    <div class="stat-card">
+                        <span id="totalRequestsStat" class="stat-number">-</span>
+                        <div class="stat-label">Total Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <span id="pendingRequestsStat" class="stat-number">-</span>
+                        <div class="stat-label">Pending Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <span id="availableUnitsStat" class="stat-number">-</span>
+                        <div class="stat-label">Available Blood Units</div>
+                    </div>
+                    <div class="stat-card">
+                        <span id="lastUpdateStat" class="stat-number">-</span>
+                        <div class="stat-label">Last Updated</div>
+                    </div>
+                </div>
+                <button class="btn success" onclick="refreshSystemSummary()">Refresh Summary</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5258/api';
+        let authToken = localStorage.getItem('authToken') || '';
+        let currentUser = null;
+
+        // Set auth token if available
+        if (authToken) {
+            updateAuthStatus('Authenticated', 'success');
+            getCurrentUser();
+        }
+
+        function updateAuthStatus(message, type) {
+            const authStatus = document.getElementById('authStatus');
+            authStatus.style.display = 'block';
+            authStatus.innerHTML = `<h4>Authentication Status</h4><div class="status ${type}">${message}</div>`;
+        }
+
+        function showResult(elementId, title, data, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = `
+                <h4>${title} <span class="status ${type}">${type.toUpperCase()}</span></h4>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+
+        function showError(elementId, title, error) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = `
+                <h4>${title} <span class="status error">ERROR</span></h4>
+                <pre style="color: #f44336;">${error}</pre>
+            `;
+        }
+
+        async function makeRequest(url, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
+                    ...options.headers
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}${url}`, { ...defaultOptions, ...options });
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${data.message || JSON.stringify(data)}`);
+                }
+                
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        async function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/users/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = data.user;
+                    updateAuthStatus(`Logged in as: ${data.user.name} (${data.user.role})`, 'success');
+                    showResult('authStatus', 'Login Success', data);
+                } else {
+                    updateAuthStatus(`Login failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                updateAuthStatus(`Login error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getCurrentUser() {
+            try {
+                const data = await makeRequest('/users/profile');
+                currentUser = data;
+                showResult('currentUserResult', 'Current User', data);
+            } catch (error) {
+                showError('currentUserResult', 'Get Current User Failed', error.message);
+            }
+        }
+
+        async function getRecipientProfile() {
+            try {
+                const data = await makeRequest('/recipients/profile');
+                showResult('profileResult', 'Recipient Profile', data);
+                
+                // Update stats
+                document.getElementById('totalRequestsStat').textContent = data.totalRequests || 0;
+                document.getElementById('pendingRequestsStat').textContent = data.pendingRequests || 0;
+            } catch (error) {
+                showError('profileResult', 'Get Profile Failed', error.message);
+            }
+        }
+
+        async function getDashboardStats() {
+            try {
+                const data = await makeRequest('/recipients/dashboard-stats');
+                showResult('dashboardStatsResult', 'Dashboard Statistics', data);
+                
+                // Update stats display
+                document.getElementById('totalRequestsStat').textContent = data.totalRequests || 0;
+                document.getElementById('pendingRequestsStat').textContent = data.pendingRequests || 0;
+            } catch (error) {
+                showError('dashboardStatsResult', 'Get Dashboard Stats Failed', error.message);
+            }
+        }
+
+        async function getMyBloodRequests() {
+            try {
+                const data = await makeRequest('/bloodrequests/my-requests');
+                showResult('myRequestsResult', 'My Blood Requests', data);
+            } catch (error) {
+                showError('myRequestsResult', 'Get My Requests Failed', error.message);
+            }
+        }
+
+        async function createBloodRequest() {
+            const requestData = {
+                bloodGroup: parseInt(document.getElementById('requestBloodGroup').value),
+                unitsRequested: parseInt(document.getElementById('unitsRequired').value),
+                urgency: parseInt(document.getElementById('requestUrgency').value),
+                requestReason: document.getElementById('requestReason').value || 'Test request',
+                doctorNotes: 'Test doctor notes',
+                requiredByDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+            };
+
+            try {
+                const data = await makeRequest('/bloodrequests', {
+                    method: 'POST',
+                    body: JSON.stringify(requestData)
+                });
+                showResult('createRequestResult', 'Blood Request Created', data);
+            } catch (error) {
+                showError('createRequestResult', 'Create Request Failed', error.message);
+            }
+        }
+
+        async function getBloodAvailability() {
+            try {
+                const data = await makeRequest('/bloodstock/availability');
+                showResult('availabilityResult', 'Blood Availability', data);
+                
+                // Calculate total available units
+                const totalUnits = data.reduce((sum, item) => sum + (item.availableUnits || 0), 0);
+                document.getElementById('availableUnitsStat').textContent = totalUnits;
+            } catch (error) {
+                showError('availabilityResult', 'Get Availability Failed', error.message);
+            }
+        }
+
+        async function getSpecificBloodAvailability() {
+            const bloodGroup = document.getElementById('specificBloodGroup').value;
+            
+            try {
+                const data = await makeRequest(`/bloodstock/availability/${bloodGroup}`);
+                showResult('specificAvailabilityResult', `${bloodGroup} Availability`, data);
+            } catch (error) {
+                showError('specificAvailabilityResult', 'Get Specific Availability Failed', error.message);
+            }
+        }
+
+        async function refreshSystemSummary() {
+            document.getElementById('lastUpdateStat').textContent = new Date().toLocaleTimeString();
+            
+            // Refresh all key metrics
+            try {
+                await Promise.all([
+                    getDashboardStats(),
+                    getBloodAvailability()
+                ]);
+            } catch (error) {
+                console.error('Error refreshing system summary:', error);
+            }
+        }
+
+        // Auto-refresh summary every 30 seconds
+        setInterval(refreshSystemSummary, 30000);
+        
+        async function seedTestData() {
+            try {
+                const response = await fetch(`${API_BASE}/seed/test-users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('seedResult', 'Test Data Seeded Successfully', data);
+                } else {
+                    showError('seedResult', 'Seeding Failed', data.message || JSON.stringify(data));
+                }
+            } catch (error) {
+                showError('seedResult', 'Seeding Error', error.message);
+            }
+        }
+
+        // Initialize on page load
+        if (authToken) {
+            refreshSystemSummary();
+        }
+    </script>
+</body>
+</html>

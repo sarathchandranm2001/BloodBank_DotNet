@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🩸 Donor System Integration Test</h1>
+    <p>Testing all donor endpoints with database integration</p>
+
+    <div class="section">
+        <h3>🌱 Seed Test Data</h3>
+        <button onclick="seedTestUsers()">Seed Test Users</button>
+        <div id="seed-users-result" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>🔐 Authentication</h3>
+        <button onclick="login()">Login as Donor/Admin</button>
+        <div id="auth-result" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>� Donor Profile</h3>
+        <button onclick="getDonorProfile()">Get My Profile</button>
+        <div id="profile-result" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>�📊 Donor Dashboard Stats</h3>
+        <button onclick="getDashboardStats()">Get Dashboard Statistics</button>
+        <div id="dashboard-result" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>👥 Get All Donors</h3>
+        <button onclick="getAllDonors()">Get All Donors</button>
+        <div id="donors-result" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>🩸 Donation Analytics</h3>
+        <button onclick="getDonationStats()">Get Donation Dashboard Stats</button>
+        <div id="donation-stats-result" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>🌱 Seed Test Data</h3>
+        <button onclick="seedData()">Seed Sample Donation Data</button>
+        <div id="seed-result" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>📋 Test Results Summary</h3>
+        <div id="summary" class="result">
+            <p>Click the buttons above to test each endpoint...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5258/api';
+        let authToken = '';
+        const testResults = {};
+
+        function updateResult(elementId, success, message, data = null) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${success ? 'success' : 'error'}`;
+            element.innerHTML = `
+                <strong>${success ? '✅ Success' : '❌ Error'}:</strong> ${message}
+                ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+            `;
+            testResults[elementId] = { success, message };
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(r => r.success).length;
+            const failed = total - passed;
+            
+            document.getElementById('summary').innerHTML = `
+                <h4>Test Results: ${passed}/${total} Passed</h4>
+                <div style="color: green;">✅ Passed: ${passed}</div>
+                <div style="color: red;">❌ Failed: ${failed}</div>
+            `;
+        }
+
+        async function makeRequest(endpoint, options = {}) {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                },
+                ...options
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, config);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${data.message || 'Request failed'}`);
+                }
+                
+                return { success: true, data };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function login() {
+            // Try donor login first, fallback to admin
+            const credentials = [
+                { email: 'donor@test.com', password: 'Donor123!', role: 'donor' },
+                { email: 'admin@bloodbank.com', password: 'Admin123!', role: 'admin' }
+            ];
+
+            for (const creds of credentials) {
+                const result = await makeRequest('/users/login', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: creds.email,
+                        password: creds.password
+                    })
+                });
+
+                if (result.success && result.data.token) {
+                    authToken = result.data.token;
+                    updateResult('auth-result', true, `Successfully logged in as ${creds.role}`, { 
+                        user: result.data.user,
+                        tokenLength: result.data.token.length 
+                    });
+                    return;
+                }
+            }
+            
+            updateResult('auth-result', false, 'Login failed for all attempts');
+        }
+
+        async function getDonorProfile() {
+            if (!authToken) {
+                updateResult('profile-result', false, 'Please login first');
+                return;
+            }
+
+            const result = await makeRequest('/donors/profile');
+            
+            if (result.success) {
+                updateResult('profile-result', true, 'Successfully fetched donor profile', result.data);
+            } else {
+                updateResult('profile-result', false, result.error || 'Failed to fetch profile');
+            }
+        }
+
+        async function getDashboardStats() {
+            if (!authToken) {
+                updateResult('dashboard-result', false, 'Please login first');
+                return;
+            }
+
+            const result = await makeRequest('/donors/dashboard/stats');
+            
+            if (result.success) {
+                updateResult('dashboard-result', true, 'Successfully fetched dashboard statistics', result.data);
+            } else {
+                updateResult('dashboard-result', false, result.error || 'Failed to fetch dashboard stats');
+            }
+        }
+
+        async function getAllDonors() {
+            if (!authToken) {
+                updateResult('donors-result', false, 'Please login first');
+                return;
+            }
+
+            const result = await makeRequest('/donors');
+            
+            if (result.success) {
+                updateResult('donors-result', true, `Successfully fetched ${result.data.length} donors`, 
+                    result.data.slice(0, 3)); // Show first 3 donors
+            } else {
+                updateResult('donors-result', false, result.error || 'Failed to fetch donors');
+            }
+        }
+
+        async function getDonationStats() {
+            if (!authToken) {
+                updateResult('donation-stats-result', false, 'Please login first');
+                return;
+            }
+
+            const result = await makeRequest('/donations/stats/dashboard');
+            
+            if (result.success) {
+                updateResult('donation-stats-result', true, 'Successfully fetched donation statistics', result.data);
+            } else {
+                updateResult('donation-stats-result', false, result.error || 'Failed to fetch donation stats');
+            }
+        }
+
+        async function seedData() {
+            if (!authToken) {
+                updateResult('seed-result', false, 'Please login first');
+                return;
+            }
+
+            const result = await makeRequest('/seed/donations', { method: 'POST' });
+            
+            if (result.success) {
+                updateResult('seed-result', true, 'Successfully seeded sample donation data', result.data);
+            } else {
+                updateResult('seed-result', false, result.error || 'Failed to seed data');
+            }
+        }
+
+        async function seedTestUsers() {
+            const result = await makeRequest('/seed/test-users', { method: 'POST' });
+            
+            if (result.success) {
+                updateResult('seed-users-result', true, 'Successfully seeded test users and data', result.data);
+            } else {
+                updateResult('seed-users-result', false, result.error || 'Failed to seed test users');
+            }
+        }
+
+        // Auto-login on page load for testing
+        window.onload = function() {
+            console.log('Donor System Test Page Loaded');
+            console.log('Backend should be running on: http://localhost:5258');
+            console.log('Frontend should be running on: http://localhost:4200');
+        };
+    </script>
+</body>
+</html>
