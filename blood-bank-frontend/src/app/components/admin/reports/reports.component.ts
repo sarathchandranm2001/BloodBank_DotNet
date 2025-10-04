@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AdminService, DonationAnalytics, BloodGroupDistribution } from '../../../services/admin.service';
+import { AdminService } from '../../../services/admin.service';
+import { DonationAnalytics, BloodGroupDistribution } from '../../../models/admin.model';
 
 @Component({
   selector: 'app-reports',

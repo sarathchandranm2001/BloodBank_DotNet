@@ -1,218 +1,177 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiService } from './api.service';
-
-// Admin DTOs interfaces
-export interface AdminDashboardStats {
-  totalUsers: number;
-  totalDonors: number;
-  totalRecipients: number;
-  totalBloodUnits: number;
-  pendingRequests: number;
-  lowStockAlerts: number;
-  expiringSoonUnits: number;
-  totalDonationsThisMonth: number;
-  activeUsers: number;
-}
-
-export interface BloodGroupStats {
-  bloodGroup: string;
-  totalUnits: number;
-  expiringSoonUnits: number;
-  expiredUnits: number;
-  isLowStock: boolean;
-  lastUpdated: string;
-}
-
-export interface RecentDonor {
-  donorId: number;
-  name: string;
-  bloodGroup: string;
-  registrationDate: string;
-  lastDonationDate?: string;
-}
-
-export interface RecentRequest {
-  requestId: number;
-  recipientName: string;
-  bloodGroup: string;
-  unitsRequested: number;
-  status: string;
-  requestDate: string;
-  urgencyLevel: string;
-}
-
-export interface SystemAlert {
-  type: string;
-  icon: string;
-  message: string;
-  severity: string;
-  createdAt: string;
-}
-
-export interface AdminActivity {
-  recentDonors: RecentDonor[];
-  recentRequests: RecentRequest[];
-  systemAlerts: SystemAlert[];
-}
-
-export interface BloodGroupDistribution {
-  bloodGroup: string;
-  donorCount: number;
-  percentage: number;
-}
-
-export interface DonationAnalytics {
-  totalDonationsThisMonth: number;
-  totalDonationsLastMonth: number;
-  totalDonationsThisYear: number;
-  donorRetentionRate: number;
-  bloodGroupDistribution: BloodGroupDistribution[];
-}
-
-export interface BloodStockSummary {
-  bloodGroup: string;
-  totalUnits: number;
-  freshUnits: number;
-  expiringSoonUnits: number;
-  expiredUnits: number;
-  oldestExpiryDate: string;
-  newestExpiryDate: string;
-  hasLowStock: boolean;
-  hasExpiringSoon: boolean;
-  hasExpired: boolean;
-}
-
-export interface LowStockAlert {
-  bloodGroup: string;
-  currentUnits: number;
-  lastUpdated: string;
-}
-
-export interface BloodAvailability {
-  bloodGroup: string;
-  availableUnits: number;
-  reservedUnits: number;
-  totalUnits: number;
-  location: string;
-  lastUpdated: string;
-  oldestUnitExpiry?: string;
-  newestUnitExpiry?: string;
-}
+import { environment } from '../../environments/environment';
+import { 
+  AdminDashboardStats, 
+  BloodGroupStats, 
+  AdminActivity, 
+  DonationAnalytics,
+  DonorDetails,
+  RecipientDetails,
+  BloodRequestManagement,
+  BloodInventoryItem,
+  Transaction
+} from '../models/admin.model';
+import { BloodRequestDto, BloodRequestStatusUpdate, BloodRequestStatus } from '../models/recipient.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminService {
+  private apiUrl = environment.apiUrl;
 
-  constructor(private apiService: ApiService) { }
+  constructor(private http: HttpClient) { }
 
-  // Admin Dashboard APIs
+  // Dashboard Statistics
   getDashboardStats(): Observable<AdminDashboardStats> {
-    return this.apiService.get<AdminDashboardStats>('/admin/dashboard-stats');
+    return this.http.get<AdminDashboardStats>(`${this.apiUrl}/admin/dashboard-stats`);
   }
 
   getBloodGroupStats(): Observable<BloodGroupStats[]> {
-    return this.apiService.get<BloodGroupStats[]>('/admin/blood-group-stats');
+    return this.http.get<BloodGroupStats[]>(`${this.apiUrl}/admin/blood-group-stats`);
   }
 
   getRecentActivity(): Observable<AdminActivity> {
-    return this.apiService.get<AdminActivity>('/admin/recent-activity');
+    return this.http.get<AdminActivity>(`${this.apiUrl}/admin/recent-activity`);
   }
 
   getDonationAnalytics(): Observable<DonationAnalytics> {
-    return this.apiService.get<DonationAnalytics>('/admin/donation-analytics');
+    return this.http.get<DonationAnalytics>(`${this.apiUrl}/admin/donation-analytics`);
   }
 
-  // Blood Stock APIs
-  getBloodStockSummary(): Observable<BloodStockSummary[]> {
-    return this.apiService.get<BloodStockSummary[]>('/bloodstock/summary');
+  // Blood Request Management
+  getAllBloodRequests(): Observable<BloodRequestDto[]> {
+    return this.http.get<BloodRequestDto[]>(`${this.apiUrl}/bloodrequests`);
   }
 
-  getLowStockAlerts(): Observable<LowStockAlert[]> {
-    return this.apiService.get<LowStockAlert[]>('/bloodstock/low-stock-alerts');
+  getPendingBloodRequests(): Observable<BloodRequestDto[]> {
+    return this.http.get<BloodRequestDto[]>(`${this.apiUrl}/bloodrequests?status=Pending`);
   }
 
-  getExpiringSoonStock(): Observable<any[]> {
-    return this.apiService.get<any[]>('/bloodstock/expiring-soon');
+  updateRequestStatus(requestId: number, statusData: BloodRequestStatusUpdate): Observable<BloodRequestDto> {
+    return this.http.put<BloodRequestDto>(`${this.apiUrl}/bloodrequests/${requestId}/status`, statusData);
   }
 
-  getBloodInventory(): Observable<BloodAvailability[]> {
-    return this.apiService.get<BloodAvailability[]>('/bloodinventory');
-  }
-
-  // User Management APIs
-  getAllUsers(): Observable<any[]> {
-    return this.apiService.get<any[]>('/users');
-  }
-
-  getUserById(id: number): Observable<any> {
-    return this.apiService.get<any>(`/users/${id}`);
-  }
-
-  updateUser(id: number, userData: any): Observable<any> {
-    return this.apiService.put<any>(`/users/${id}`, userData);
-  }
-
-  deleteUser(id: number): Observable<any> {
-    return this.apiService.delete<any>(`/users/${id}`);
-  }
-
-  // Blood Requests APIs
-  getAllBloodRequests(): Observable<any[]> {
-    return this.apiService.get<any[]>('/bloodrequests');
-  }
-
-  getPendingBloodRequests(): Observable<any[]> {
-    return this.apiService.get<any[]>('/bloodrequests/pending');
-  }
-
-  updateBloodRequestStatus(requestId: number, status: string, adminNotes?: string): Observable<any> {
-    return this.apiService.put<any>(`/bloodrequests/${requestId}/status`, {
-      status,
-      adminNotes
+  approveBloodRequest(requestId: number, adminNotes?: string): Observable<BloodRequestDto> {
+    return this.updateRequestStatus(requestId, { 
+      status: BloodRequestStatus.Approved, 
+      adminNotes: adminNotes || '' 
     });
   }
 
-  // Donor Management APIs
-  getAllDonors(): Observable<any[]> {
-    return this.apiService.get<any[]>('/donors');
+  rejectBloodRequest(requestId: number, adminNotes: string): Observable<BloodRequestDto> {
+    return this.updateRequestStatus(requestId, { 
+      status: BloodRequestStatus.Rejected, 
+      adminNotes 
+    });
   }
 
-  getEligibleDonors(): Observable<any[]> {
-    return this.apiService.get<any[]>('/donors/eligible');
+  fulfillBloodRequest(requestId: number, adminNotes?: string): Observable<BloodRequestDto> {
+    return this.updateRequestStatus(requestId, { 
+      status: BloodRequestStatus.Fulfilled, 
+      adminNotes: adminNotes || '' 
+    });
   }
 
-  getDonorsByBloodGroup(bloodGroup: string): Observable<any[]> {
-    return this.apiService.get<any[]>(`/donors/bloodgroup/${bloodGroup}`);
+  // Donor Management
+  getAllDonors(): Observable<DonorDetails[]> {
+    return this.http.get<DonorDetails[]>(`${this.apiUrl}/donors`);
   }
 
-  // Recipient Management APIs
-  getAllRecipients(): Observable<any[]> {
-    return this.apiService.get<any[]>('/recipients');
+  getDonorById(id: number): Observable<DonorDetails> {
+    return this.http.get<DonorDetails>(`${this.apiUrl}/donors/${id}`);
   }
 
-  // Blood Stock Management APIs
-  addBloodStock(stockData: any): Observable<any> {
-    return this.apiService.post<any>('/bloodstock', stockData);
+  updateDonorStatus(id: number, isEligible: boolean): Observable<DonorDetails> {
+    return this.http.put<DonorDetails>(`${this.apiUrl}/donors/${id}/eligibility`, { isEligible });
   }
 
-  updateBloodStock(stockId: number, stockData: any): Observable<any> {
-    return this.apiService.put<any>(`/bloodstock/${stockId}`, stockData);
+  deleteDonor(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/donors/${id}`);
   }
 
-  deleteBloodStock(stockId: number): Observable<any> {
-    return this.apiService.delete<any>(`/bloodstock/${stockId}`);
+  // Recipient Management
+  getAllRecipients(): Observable<RecipientDetails[]> {
+    return this.http.get<RecipientDetails[]>(`${this.apiUrl}/recipients`);
   }
 
-  // System Health APIs
-  getSystemHealth(): Observable<any> {
-    // This would be a custom endpoint for system health monitoring
-    return this.apiService.get<any>('/admin/system-health');
+  getRecipientById(id: number): Observable<RecipientDetails> {
+    return this.http.get<RecipientDetails>(`${this.apiUrl}/recipients/${id}`);
+  }
+
+  deleteRecipient(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/recipients/${id}`);
+  }
+
+  // Blood Inventory Management
+  getBloodInventory(): Observable<BloodInventoryItem[]> {
+    return this.http.get<BloodInventoryItem[]>(`${this.apiUrl}/bloodstock`);
+  }
+
+  getBloodAvailability(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/bloodstock/availability`);
+  }
+
+  updateBloodStock(inventoryId: number, units: number): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/bloodstock/${inventoryId}`, { unitsAvailable: units });
+  }
+
+  removeExpiredBlood(inventoryId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/bloodstock/${inventoryId}/expired`);
+  }
+
+  // Transaction History
+  getTransactionHistory(): Observable<Transaction[]> {
+    return this.http.get<Transaction[]>(`${this.apiUrl}/admin/transactions`);
+  }
+
+  getDonationHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/donations`);
+  }
+
+  // Reports and Analytics
+  getBloodInventoryReport(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/admin/reports/inventory`);
+  }
+
+  getDonorReport(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/admin/reports/donors`);
+  }
+
+  getRequestsReport(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/admin/reports/requests`);
+  }
+
+  // User Management
+  getAllUsers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/users`);
+  }
+
+  updateUserStatus(userId: number, isActive: boolean): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/users/${userId}/status`, { isActive });
+  }
+
+  deleteUser(userId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/users/${userId}`);
+  }
+
+  // Emergency Alerts
+  sendEmergencyAlert(bloodGroup: string, message: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/admin/emergency-alert`, { bloodGroup, message });
+  }
+
+  // System Settings
+  getSystemSettings(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/admin/settings`);
+  }
+
+  updateSystemSettings(settings: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/admin/settings`, settings);
   }
 
   // Export APIs
   exportData(dataType: string, format: string = 'csv'): Observable<Blob> {
-    return this.apiService.getBlob(`/admin/export/${dataType}?format=${format}`);
+    return this.http.get(`${this.apiUrl}/admin/export/${dataType}?format=${format}`, { responseType: 'blob' });
   }
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AdminService, BloodGroupStats, SystemAlert } from '../../../services/admin.service';
+import { AdminService } from '../../../services/admin.service';
+import { BloodGroupStats, SystemAlert } from '../../../models/admin.model';
 
 @Component({
   selector: 'app-blood-inventory',
