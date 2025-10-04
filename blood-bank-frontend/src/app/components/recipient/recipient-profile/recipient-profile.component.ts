@@ -12,7 +12,7 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
     ReactiveFormsModule
   ],
   template: `
-    <div class="container-fluid py-4" *ngIf="recipient">
+    <div class="container-fluid py-4" *ngIf="recipient || (!recipient && !isLoading)">
       <!-- Profile Header -->
       <div class="row mb-4">
         <div class="col-12">
@@ -20,14 +20,16 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
-                  <h1 class="card-title mb-2">{{ recipient.userName }}</h1>
-                  <p class="card-text mb-2">{{ recipient.userEmail }}</p>
-                  <div class="d-flex gap-2">
+                  <h1 class="card-title mb-2" *ngIf="recipient">{{ recipient.userName }}</h1>
+                  <h1 class="card-title mb-2" *ngIf="!recipient">Complete Your Profile</h1>
+                  <p class="card-text mb-2" *ngIf="recipient">{{ recipient.userEmail }}</p>
+                  <p class="card-text mb-2" *ngIf="!recipient">Register as a blood recipient to make requests</p>
+                  <div class="d-flex gap-2" *ngIf="recipient">
                     <span class="badge bg-light text-dark">Total Requests: {{ recipient.totalRequests || 0 }}</span>
                     <span class="badge bg-warning text-dark">Pending: {{ recipient.pendingRequests || 0 }}</span>
                   </div>
                 </div>
-                <div>
+                <div *ngIf="recipient">
                   <button class="btn btn-light btn-lg" (click)="toggleEdit()">
                     <i class="bi" [ngClass]="isEditing ? 'bi-x-circle' : 'bi-pencil'"></i>
                     {{ isEditing ? 'Cancel' : 'Edit Profile' }}
@@ -133,7 +135,7 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
                   <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid || isLoading">
                     <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
                     <i *ngIf="!isLoading" class="bi bi-check-circle me-2"></i>
-                    {{ isLoading ? 'Updating...' : 'Update Profile' }}
+                    {{ isLoading ? (recipient ? 'Updating...' : 'Registering...') : (recipient ? 'Update Profile' : 'Register Profile') }}
                   </button>
                 </div>
               </form>
@@ -147,11 +149,11 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
                   </h6>
                   <div class="row">
                     <div class="col-sm-3"><strong>Hospital:</strong></div>
-                    <div class="col-sm-9">{{ recipient.hospitalName }}</div>
+                    <div class="col-sm-9">{{ recipient?.hospitalName }}</div>
                   </div>
                   <div class="row mt-2">
                     <div class="col-sm-3"><strong>Doctor:</strong></div>
-                    <div class="col-sm-9">{{ recipient.doctorName }}</div>
+                    <div class="col-sm-9">{{ recipient?.doctorName }}</div>
                   </div>
                 </div>
 
@@ -164,23 +166,23 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
                   </h6>
                   <div class="row mb-2">
                     <div class="col-sm-3"><strong>Address:</strong></div>
-                    <div class="col-sm-9">{{ recipient.contactInfo.address }}</div>
+                    <div class="col-sm-9">{{ recipient?.contactInfo?.address }}</div>
                   </div>
                   <div class="row mb-2">
                     <div class="col-sm-3"><strong>City:</strong></div>
-                    <div class="col-sm-9">{{ recipient.contactInfo.city }}</div>
+                    <div class="col-sm-9">{{ recipient?.contactInfo?.city }}</div>
                   </div>
                   <div class="row mb-2">
                     <div class="col-sm-3"><strong>State:</strong></div>
-                    <div class="col-sm-9">{{ recipient.contactInfo.state }}</div>
+                    <div class="col-sm-9">{{ recipient?.contactInfo?.state }}</div>
                   </div>
                   <div class="row mb-2">
                     <div class="col-sm-3"><strong>Pin Code:</strong></div>
-                    <div class="col-sm-9">{{ recipient.contactInfo.pinCode }}</div>
+                    <div class="col-sm-9">{{ recipient?.contactInfo?.pinCode }}</div>
                   </div>
                   <div class="row mb-2">
                     <div class="col-sm-3"><strong>Phone:</strong></div>
-                    <div class="col-sm-9">{{ recipient.contactInfo.phoneNumber }}</div>
+                    <div class="col-sm-9">{{ recipient?.contactInfo?.phoneNumber }}</div>
                   </div>
                 </div>
 
@@ -194,7 +196,7 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
                   <div class="row">
                     <div class="col-sm-3"><strong>Medical Condition:</strong></div>
                     <div class="col-sm-9">
-                      <p class="mb-0 text-break">{{ recipient.medicalCondition }}</p>
+                      <p class="mb-0 text-break">{{ recipient?.medicalCondition }}</p>
                     </div>
                   </div>
                 </div>
@@ -208,11 +210,11 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
                   </h6>
                   <div class="row mb-2">
                     <div class="col-sm-3"><strong>Registered On:</strong></div>
-                    <div class="col-sm-9">{{ recipient.createdAt | date:'medium' }}</div>
+                    <div class="col-sm-9">{{ recipient?.createdAt | date:'medium' }}</div>
                   </div>
-                  <div class="row" *ngIf="recipient.updatedAt">
+                  <div class="row" *ngIf="recipient?.updatedAt">
                     <div class="col-sm-3"><strong>Last Updated:</strong></div>
-                    <div class="col-sm-9">{{ recipient.updatedAt | date:'medium' }}</div>
+                    <div class="col-sm-9">{{ recipient?.updatedAt | date:'medium' }}</div>
                   </div>
                 </div>
               </div>
@@ -451,7 +453,14 @@ export class RecipientProfileComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Failed to load profile:', error);
-        this.showMessage('Failed to load profile');
+        if (error.status === 404) {
+          // No profile exists - this is a new user who needs to register
+          console.log('No recipient profile found - user needs to register');
+          this.recipient = null;
+          this.isEditing = true; // Show form for new registration
+        } else {
+          this.showMessage('Failed to load profile');
+        }
       },
       complete: () => {
         this.isLoading = false;
@@ -486,22 +495,57 @@ export class RecipientProfileComponent implements OnInit {
     if (this.profileForm.valid) {
       this.isLoading = true;
       
-      const updateData: RecipientUpdate = this.profileForm.value;
+      if (this.recipient) {
+        // Update existing profile
+        const updateData: RecipientUpdate = this.profileForm.value;
 
-      this.recipientService.updateRecipientProfile(updateData).subscribe({
-        next: (recipient: Recipient) => {
-          this.recipient = recipient;
-          this.isEditing = false;
-          this.showMessage('Profile updated successfully!');
-        },
-        error: (error: any) => {
-          console.error('Profile update failed:', error);
-          this.showMessage(error.error?.message || 'Profile update failed');
-        },
-        complete: () => {
-          this.isLoading = false;
-        }
-      });
+        this.recipientService.updateRecipientProfile(updateData).subscribe({
+          next: (recipient: Recipient) => {
+            this.recipient = recipient;
+            this.isEditing = false;
+            this.showMessage('Profile updated successfully!');
+          },
+          error: (error: any) => {
+            console.error('Profile update failed:', error);
+            this.showMessage(error.error?.message || 'Profile update failed');
+          },
+          complete: () => {
+            this.isLoading = false;
+          }
+        });
+      } else {
+        // Register new profile
+        const formValue = this.profileForm.value;
+        const registrationData = {
+          userId: 0, // Backend will get the actual userId from JWT token
+          hospitalName: formValue.hospitalName,
+          doctorName: formValue.doctorName,
+          contactInfo: {
+            address: formValue.contactInfo.address,
+            city: formValue.contactInfo.city,
+            state: formValue.contactInfo.state,
+            zipCode: formValue.contactInfo.pinCode,
+            phone: formValue.contactInfo.phoneNumber,
+            country: 'India' // Default country
+          },
+          medicalCondition: formValue.medicalCondition
+        };
+
+        this.recipientService.registerRecipient(registrationData).subscribe({
+          next: (recipient: Recipient) => {
+            this.recipient = recipient;
+            this.isEditing = false;
+            this.showMessage('Profile registered successfully! You can now make blood requests.');
+          },
+          error: (error: any) => {
+            console.error('Profile registration failed:', error);
+            this.showMessage(error.error?.message || 'Profile registration failed');
+          },
+          complete: () => {
+            this.isLoading = false;
+          }
+        });
+      }
     }
   }
 

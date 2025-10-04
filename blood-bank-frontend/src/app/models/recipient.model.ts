@@ -72,6 +72,29 @@ export interface BloodRequest {
   updatedAt?: Date;
 }
 
+// Backend DTO representation with string values
+export interface BloodRequestDto {
+  requestId: number;
+  recipientId: number;
+  recipientName?: string;
+  hospitalName?: string;
+  doctorName?: string;
+  bloodGroup: string;
+  unitsRequested: number;
+  urgency: string;
+  status: string;
+  requestReason: string;
+  doctorNotes?: string;
+  adminNotes?: string;
+  requestDate: Date;
+  requiredByDate?: Date;
+  approvedDate?: Date;
+  fulfilledDate?: Date;
+  approvedByName?: string;
+  fulfilledByName?: string;
+  daysUntilRequired?: number;
+}
+
 export interface BloodRequestCreate {
   bloodGroup: BloodGroup;
   unitsRequested: number;

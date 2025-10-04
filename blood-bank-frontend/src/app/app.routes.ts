@@ -9,10 +9,7 @@ import { DonorRegistrationComponent } from './components/donor/donor-registratio
 import { DonorProfileComponent } from './components/donor/donor-profile/donor-profile.component';
 import { DonorDashboardComponent } from './components/donor/donor-dashboard/donor-dashboard.component';
 
-// Recipient Components
-import { RecipientRegistrationComponent } from './components/recipient/recipient-registration/recipient-registration.component';
-import { RecipientProfileComponent } from './components/recipient/recipient-profile/recipient-profile.component';
-import { RecipientDashboardComponent } from './components/recipient/recipient-dashboard/recipient-dashboard.component';
+// Recipient components are handled by RecipientModule
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -54,21 +51,6 @@ export const routes: Routes = [
     component: DonorDashboardComponent,
     canActivate: [AuthGuard]
   },
-  // Standalone Recipient Routes
-  {
-    path: 'recipient/register',
-    component: RecipientRegistrationComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'recipient/profile',
-    component: RecipientProfileComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'recipient/dashboard',
-    component: RecipientDashboardComponent,
-    canActivate: [AuthGuard]
-  },
+  // Recipient routes are handled by the RecipientModule
   { path: '**', redirectTo: '/dashboard' }
 ];

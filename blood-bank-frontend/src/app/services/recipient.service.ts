@@ -6,6 +6,7 @@ import {
   RecipientRegistration, 
   RecipientUpdate, 
   BloodRequest, 
+  BloodRequestDto,
   BloodRequestCreate, 
   BloodRequestUpdate,
   BloodRequestStatusUpdate
@@ -16,7 +17,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class RecipientService {
-  private apiUrl = `${environment.apiUrl}/api`;
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
@@ -46,28 +47,28 @@ export class RecipientService {
   }
 
   // Blood Request Management
-  createBloodRequest(requestData: BloodRequestCreate): Observable<BloodRequest> {
-    return this.http.post<BloodRequest>(`${this.apiUrl}/bloodrequests`, requestData);
+  createBloodRequest(requestData: BloodRequestCreate): Observable<BloodRequestDto> {
+    return this.http.post<BloodRequestDto>(`${this.apiUrl}/bloodrequests`, requestData);
   }
 
-  getMyBloodRequests(): Observable<BloodRequest[]> {
-    return this.http.get<BloodRequest[]>(`${this.apiUrl}/bloodrequests/my-requests`);
+  getMyBloodRequests(): Observable<BloodRequestDto[]> {
+    return this.http.get<BloodRequestDto[]>(`${this.apiUrl}/bloodrequests/my-requests`);
   }
 
-  getAllBloodRequests(): Observable<BloodRequest[]> {
-    return this.http.get<BloodRequest[]>(`${this.apiUrl}/bloodrequests`);
+  getAllBloodRequests(): Observable<BloodRequestDto[]> {
+    return this.http.get<BloodRequestDto[]>(`${this.apiUrl}/bloodrequests`);
   }
 
-  getBloodRequestById(id: number): Observable<BloodRequest> {
-    return this.http.get<BloodRequest>(`${this.apiUrl}/bloodrequests/${id}`);
+  getBloodRequestById(id: number): Observable<BloodRequestDto> {
+    return this.http.get<BloodRequestDto>(`${this.apiUrl}/bloodrequests/${id}`);
   }
 
-  updateBloodRequest(id: number, updateData: BloodRequestUpdate): Observable<BloodRequest> {
-    return this.http.put<BloodRequest>(`${this.apiUrl}/bloodrequests/${id}`, updateData);
+  updateBloodRequest(id: number, updateData: BloodRequestUpdate): Observable<BloodRequestDto> {
+    return this.http.put<BloodRequestDto>(`${this.apiUrl}/bloodrequests/${id}`, updateData);
   }
 
-  updateBloodRequestStatus(id: number, statusData: BloodRequestStatusUpdate): Observable<BloodRequest> {
-    return this.http.put<BloodRequest>(`${this.apiUrl}/bloodrequests/${id}/status`, statusData);
+  updateBloodRequestStatus(id: number, statusData: BloodRequestStatusUpdate): Observable<BloodRequestDto> {
+    return this.http.put<BloodRequestDto>(`${this.apiUrl}/bloodrequests/${id}/status`, statusData);
   }
 
   cancelBloodRequest(id: number): Observable<void> {

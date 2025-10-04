@@ -6,6 +6,7 @@ import { AuthService } from '../../../services/auth.service';
 import { 
   Recipient, 
   BloodRequest, 
+  BloodRequestDto,
   BloodRequestStatus, 
   BloodRequestStatusNames, 
   BloodRequestUrgency, 
@@ -119,9 +120,9 @@ import { BloodGroupNames } from '../../../models/common.model';
                   <div class="d-flex justify-content-between align-items-start">
                     <div class="flex-grow-1">
                       <div class="d-flex align-items-center mb-2">
-                        <span class="badge bg-danger me-2 fs-6">{{ bloodGroupNames[request.bloodGroup] }}</span>
+                        <span class="badge bg-danger me-2 fs-6">{{ bloodGroupStringNames[request.bloodGroup] || request.bloodGroup }}</span>
                         <span class="badge" [ngClass]="getStatusClass(request.status)">
-                          {{ statusNames[request.status] }}
+                          {{ statusStringNames[request.status] || request.status }}
                         </span>
                       </div>
                       <div class="text-muted small">
@@ -131,7 +132,7 @@ import { BloodGroupNames } from '../../../models/common.model';
                     </div>
                     <div>
                       <span class="badge" [ngClass]="getUrgencyClass(request.urgency)">
-                        {{ urgencyNames[request.urgency] }}
+                        {{ urgencyStringNames[request.urgency] || request.urgency }}
                       </span>
                     </div>
                   </div>
@@ -242,6 +243,99 @@ import { BloodGroupNames } from '../../../models/common.model';
                 <div class="list-group-item px-0 border-0">
                   <i class="bi bi-telephone text-success me-2"></i>
                   <small>Contact your doctor for any medical questions</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Profile State -->
+      <div class="row justify-content-center" *ngIf="!isLoading && !recipient">
+        <div class="col-lg-8">
+          <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Complete Your Recipient Profile
+              </h5>
+            </div>
+            <div class="card-body text-center py-5">
+              <i class="bi bi-person-plus display-1 text-warning mb-4"></i>
+              <h3 class="mb-3">Welcome to Blood Bank Management</h3>
+              <p class="lead mb-4">
+                To request blood and access recipient features, you need to complete your recipient profile with hospital and medical information.
+              </p>
+              <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a class="btn btn-warning btn-lg me-md-2" routerLink="/recipient/profile">
+                  <i class="bi bi-person-fill-add me-2"></i>
+                  Complete Profile
+                </a>
+                <a class="btn btn-outline-primary btn-lg" routerLink="/recipient/blood-availability">
+                  <i class="bi bi-search me-2"></i>
+                  Check Blood Availability
+                </a>
+              </div>
+            </div>
+            <div class="card-footer bg-light">
+              <div class="row text-center">
+                <div class="col-md-4">
+                  <i class="bi bi-hospital text-primary fs-4 mb-2"></i>
+                  <p class="small mb-0">Hospital Information</p>
+                </div>
+                <div class="col-md-4">
+                  <i class="bi bi-person-badge text-primary fs-4 mb-2"></i>
+                  <p class="small mb-0">Doctor Details</p>
+                </div>
+                <div class="col-md-4">
+                  <i class="bi bi-telephone text-primary fs-4 mb-2"></i>
+                  <p class="small mb-0">Contact Information</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Profile State -->
+      <div class="row justify-content-center" *ngIf="!recipient && !isLoading">
+        <div class="col-lg-8">
+          <div class="card border-warning">
+            <div class="card-body text-center py-5">
+              <i class="bi bi-person-plus display-1 text-warning mb-4"></i>
+              <h2 class="card-title text-warning mb-3">Complete Your Profile</h2>
+              <p class="card-text text-muted mb-4">
+                Welcome! To use the blood request system, please complete your recipient profile first. 
+                This helps us process your requests efficiently and contact you when needed.
+              </p>
+              <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a class="btn btn-warning btn-lg me-md-2" routerLink="/recipient/profile">
+                  <i class="bi bi-person-fill-add me-2"></i>
+                  Complete Profile Now
+                </a>
+                <a class="btn btn-outline-primary btn-lg" routerLink="/recipient/blood-availability">
+                  <i class="bi bi-search me-2"></i>
+                  Check Blood Availability
+                </a>
+              </div>
+              
+              <hr class="my-4">
+              
+              <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                  <i class="bi bi-shield-check text-success fs-1 mb-2"></i>
+                  <h6>Secure & Private</h6>
+                  <small class="text-muted">Your information is protected</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <i class="bi bi-clock-history text-info fs-1 mb-2"></i>
+                  <h6>Quick Setup</h6>
+                  <small class="text-muted">Complete in 2 minutes</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <i class="bi bi-heart-pulse text-danger fs-1 mb-2"></i>
+                  <h6>Life Saving</h6>
+                  <small class="text-muted">Help save lives with blood requests</small>
                 </div>
               </div>
             </div>
@@ -607,7 +701,7 @@ import { BloodGroupNames } from '../../../models/common.model';
 })
 export class RecipientDashboardComponent implements OnInit {
   recipient: Recipient | null = null;
-  recentRequests: BloodRequest[] = [];
+  recentRequests: BloodRequestDto[] = [];
   bloodAvailability: any[] = [];
   currentUser: any = null;
   isLoading = false;
@@ -615,6 +709,33 @@ export class RecipientDashboardComponent implements OnInit {
   statusNames = BloodRequestStatusNames;
   urgencyNames = BloodRequestUrgencyNames;
   bloodGroupNames: { [key: string]: string } = BloodGroupNames;
+
+  // String-based mappings for backend response
+  bloodGroupStringNames: { [key: string]: string } = {
+    'O_NEGATIVE': 'O-',
+    'O_POSITIVE': 'O+',
+    'A_NEGATIVE': 'A-',
+    'A_POSITIVE': 'A+',
+    'B_NEGATIVE': 'B-',
+    'B_POSITIVE': 'B+',
+    'AB_NEGATIVE': 'AB-',
+    'AB_POSITIVE': 'AB+'
+  };
+
+  urgencyStringNames: { [key: string]: string } = {
+    'Low': 'Low',
+    'Medium': 'Medium',
+    'High': 'High',
+    'Critical': 'Critical'
+  };
+
+  statusStringNames: { [key: string]: string } = {
+    'Pending': 'Pending',
+    'Approved': 'Approved',
+    'Fulfilled': 'Fulfilled',
+    'Rejected': 'Rejected',
+    'Cancelled': 'Cancelled'
+  };
 
   constructor(
     private recipientService: RecipientService,
@@ -633,12 +754,24 @@ export class RecipientDashboardComponent implements OnInit {
     this.recipientService.getRecipientProfile().subscribe({
       next: (recipient: Recipient) => {
         this.recipient = recipient;
+        this.loadRecipientData(); // Load additional data only if profile exists
       },
       error: (error: any) => {
         console.error('Failed to load profile:', error);
-        this.showMessage('Failed to load profile data');
+        if (error.status === 404) {
+          // No recipient profile exists - this is expected for new users
+          console.log('No recipient profile found - user needs to register');
+          this.recipient = null;
+          this.isLoading = false;
+        } else {
+          this.showMessage('Failed to load profile data');
+          this.isLoading = false;
+        }
       }
     });
+  }
+
+  private loadRecipientData(): void {
 
     // Load dashboard statistics
     this.recipientService.getDashboardStats().subscribe({
@@ -657,23 +790,22 @@ export class RecipientDashboardComponent implements OnInit {
 
     // Load recent requests
     this.recipientService.getMyBloodRequests().subscribe({
-      next: (requests: BloodRequest[]) => {
+      next: (requests: BloodRequestDto[]) => {
         this.recentRequests = requests.slice(0, 5); // Show only 5 most recent
       },
       error: (error: any) => {
         console.error('Failed to load requests:', error);
-        this.showMessage('Failed to load recent requests');
+        // Don't show error message for requests if no profile exists
       }
     });
 
-    // Load blood availability
+    // Load blood availability (this works without recipient profile)
     this.recipientService.getBloodAvailability().subscribe({
       next: (availability: any[]) => {
         this.bloodAvailability = availability;
       },
       error: (error: any) => {
         console.error('Failed to load availability:', error);
-        this.showMessage('Failed to load blood availability data');
       },
       complete: () => {
         this.isLoading = false;
@@ -681,23 +813,23 @@ export class RecipientDashboardComponent implements OnInit {
     });
   }
 
-  getStatusClass(status: BloodRequestStatus): string {
+  getStatusClass(status: string): string {
     switch (status) {
-      case BloodRequestStatus.Pending: return 'status-pending';
-      case BloodRequestStatus.Approved: return 'status-approved';
-      case BloodRequestStatus.Fulfilled: return 'status-fulfilled';
-      case BloodRequestStatus.Rejected: return 'status-rejected';
-      case BloodRequestStatus.Cancelled: return 'status-cancelled';
+      case 'Pending': return 'status-pending';
+      case 'Approved': return 'status-approved';
+      case 'Fulfilled': return 'status-fulfilled';
+      case 'Rejected': return 'status-rejected';
+      case 'Cancelled': return 'status-cancelled';
       default: return '';
     }
   }
 
-  getUrgencyClass(urgency: BloodRequestUrgency): string {
+  getUrgencyClass(urgency: string): string {
     switch (urgency) {
-      case BloodRequestUrgency.Low: return 'urgency-low';
-      case BloodRequestUrgency.Medium: return 'urgency-medium';
-      case BloodRequestUrgency.High: return 'urgency-high';
-      case BloodRequestUrgency.Critical: return 'urgency-critical';
+      case 'Low': return 'urgency-low';
+      case 'Medium': return 'urgency-medium';
+      case 'High': return 'urgency-high';
+      case 'Critical': return 'urgency-critical';
       default: return '';
     }
   }

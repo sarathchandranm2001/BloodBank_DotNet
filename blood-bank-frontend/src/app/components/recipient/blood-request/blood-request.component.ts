@@ -281,10 +281,11 @@ export class BloodRequestComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Set minimum date to tomorrow
+    // Set minimum date to tomorrow in yyyy-MM-dd format
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    this.requestForm.get('requiredByDate')?.setValue(tomorrow);
+    const tomorrowString = tomorrow.toISOString().split('T')[0]; // Format as yyyy-MM-dd
+    this.requestForm.get('requiredByDate')?.setValue(tomorrowString);
   }
 
   private createForm(): FormGroup {
@@ -356,15 +357,28 @@ export class BloodRequestComponent implements OnInit {
     if (this.requestForm.valid) {
       this.isLoading = true;
       
-      const requestData: BloodRequestCreate = this.requestForm.value;
+      const formValue = this.requestForm.value;
+      
+      const requestData: BloodRequestCreate = {
+        bloodGroup: parseInt(formValue.bloodGroup), // Ensure numeric value
+        unitsRequested: parseInt(formValue.unitsRequested),
+        urgency: parseInt(formValue.urgency), // Ensure numeric value
+        requestReason: formValue.requestReason,
+        doctorNotes: formValue.doctorNotes || '',
+        requiredByDate: new Date(formValue.requiredByDate)
+      };
+
+      console.log('🔍 REQUEST: Submitting blood request:', requestData);
 
       this.recipientService.createBloodRequest(requestData).subscribe({
         next: (request: any) => {
+          console.log('✅ REQUEST: Successfully created:', request);
           this.showMessage('Blood request submitted successfully!');
           this.router.navigate(['/recipient/my-requests']);
         },
         error: (error: any) => {
-          console.error('Request submission failed:', error);
+          console.error('💥 REQUEST: Submission failed:', error);
+          console.error('💥 REQUEST: Error details:', error.error);
           this.showMessage(error.error?.message || 'Request submission failed. Please try again.');
         },
         complete: () => {
@@ -373,6 +387,7 @@ export class BloodRequestComponent implements OnInit {
       });
     } else {
       this.markFormGroupTouched(this.requestForm);
+      console.log('❌ FORM: Form is invalid:', this.requestForm.errors);
     }
   }
 
