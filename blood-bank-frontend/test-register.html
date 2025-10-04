@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .loading { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>🩸 Blood Bank Registration Test</h1>
+    
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="role">Role:</label>
+            <select id="role" name="role" required>
+                <option value="">Select Role</option>
+                <option value="Admin">Admin</option>
+                <option value="Donor">Donor</option>
+                <option value="Recipient">Recipient</option>
+            </select>
+        </div>
+        
+        <button type="submit" id="submitBtn">Register User</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        const API_URL = 'http://localhost:5258/api';
+        
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const resultDiv = document.getElementById('result');
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Registering...';
+            resultDiv.innerHTML = '<div class="loading">🔄 Registering user...</div>';
+            
+            // Get form data
+            const formData = new FormData(this);
+            const userData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                password: formData.get('password'), 
+                role: formData.get('role')
+            };
+            
+            console.log('🚀 Sending registration data:', userData);
+            
+            try {
+                const response = await fetch(`${API_URL}/users/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                console.log('📡 Response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Registration successful:', result);
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Registration Successful!</h3>
+                            <p><strong>User ID:</strong> ${result.userId}</p>
+                            <p><strong>Name:</strong> ${result.name}</p>
+                            <p><strong>Email:</strong> ${result.email}</p>
+                            <p><strong>Role:</strong> ${result.role}</p>
+                            <p><strong>Created:</strong> ${new Date(result.createdAt).toLocaleString()}</p>
+                        </div>
+                    `;
+                    
+                    // Reset form
+                    this.reset();
+                    
+                } else {
+                    const errorData = await response.json();
+                    console.error('❌ Registration failed:', errorData);
+                    
+                    let errorMessage = 'Registration failed';
+                    if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (errorData.errors) {
+                        errorMessage = Object.values(errorData.errors).flat().join(', ');
+                    }
+                    
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Registration Failed</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Error:</strong> ${errorMessage}</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('🔥 Network error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>🔥 Network Error</h3>
+                        <p>Could not connect to server. Make sure the backend is running on port 5258.</p>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+            
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Register User';
+        });
+        
+        // Test connection on page load
+        window.addEventListener('load', async function() {
+            console.log('🔍 Testing API connection...');
+            try {
+                const response = await fetch(`${API_URL}/health`, { method: 'HEAD' });
+                console.log(response.ok ? '✅ API is reachable' : '⚠️ API responded with error');
+            } catch (error) {
+                console.log('❌ API is not reachable:', error.message);
+            }
+        });
+    </script>
+</body>
+</html>

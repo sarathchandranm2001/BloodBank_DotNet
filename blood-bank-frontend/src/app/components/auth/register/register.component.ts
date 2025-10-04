@@ -2,13 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
 import { UserRegistration, UserRole } from '../../../models/user.model';
 
@@ -18,17 +11,9 @@ import { UserRegistration, UserRole } from '../../../models/user.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule,
-    MatSnackBarModule
+    RouterModule
   ],
-  templateUrl: './register.component.html',
-  styleUrl: './register.component.scss'
+  templateUrl: './register.component.html'
 })
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
@@ -44,8 +29,7 @@ export class RegisterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router,
-    private snackBar: MatSnackBar
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -95,19 +79,20 @@ export class RegisterComponent implements OnInit {
     if (this.registerForm.valid) {
       this.isLoading = true;
       const { confirmPassword, ...registerData } = this.registerForm.value;
-      const userData: UserRegistration = registerData;
+      
+      // Convert role from string to number to match enum
+      const userData: UserRegistration = {
+        ...registerData,
+        role: parseInt(registerData.role, 10)
+      };
       
       console.log('📤 Sending registration data:', userData);
-      console.log('API endpoint will be:', 'https://localhost:7191/api/users/register');
 
       this.authService.register(userData).subscribe({
         next: (response) => {
           console.log('✅ Registration successful:', response);
           this.isLoading = false;
-          this.snackBar.open('Registration successful! Please login.', 'Close', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
+          alert('Registration successful! Please login.');
           this.router.navigate(['/login']);
         },
         error: (error) => {
@@ -129,10 +114,7 @@ export class RegisterComponent implements OnInit {
             errorMessage = error.message;
           }
           
-          this.snackBar.open(errorMessage, 'Close', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
+          alert(errorMessage);
         }
       });
     } else {

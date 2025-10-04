@@ -26,7 +26,7 @@ export class ApiService {
     };
   }
 
-  private handleError(error: any): Observable<never> {
+  private handleError = (error: any): Observable<never> => {
     return this.errorHandler.handleError(error);
   }
 

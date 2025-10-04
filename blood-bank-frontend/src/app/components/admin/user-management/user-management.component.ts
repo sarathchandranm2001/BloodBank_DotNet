@@ -1,18 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule, MatTableDataSource } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
-import { MatSortModule, MatSort } from '@angular/material/sort';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
+
 import { AdminService } from '../../../services/admin.service';
 import { UserService } from '../../../services/user.service';
 
@@ -29,139 +18,167 @@ interface User {
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatChipsModule,
-    MatDialogModule
+    FormsModule
   ],
   template: `
     <div class="user-management-container">
-      <div class="header">
-        <h1>User Management</h1>
+      <div class="header d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">User Management</h1>
         <div class="header-actions">
-          <button mat-raised-button color="accent" (click)="refreshData()" [disabled]="isLoading">
-            <mat-icon>refresh</mat-icon>
+          <button class="btn btn-outline-primary me-2" (click)="refreshData()" [disabled]="isLoading">
+            <i class="bi bi-arrow-clockwise me-1"></i>
             Refresh
           </button>
-          <button mat-raised-button color="primary">
-            <mat-icon>add</mat-icon>
+          <button class="btn btn-primary">
+            <i class="bi bi-person-plus me-1"></i>
             Add New User
           </button>
         </div>
       </div>
 
       <!-- Loading Spinner -->
-      <div *ngIf="isLoading" class="loading-container">
-        <mat-progress-spinner mode="indeterminate" diameter="60"></mat-progress-spinner>
-        <p>Loading user data...</p>
+      <div *ngIf="isLoading" class="loading-container text-center py-5">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Loading user data...</p>
       </div>
 
-      <mat-card *ngIf="!isLoading">
-        <mat-card-header>
-          <mat-card-title>System Users ({{ users.length }})</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
+      <div class="card" *ngIf="!isLoading">
+        <div class="card-header">
+          <h5 class="card-title mb-0">System Users ({{ filteredUsers.length }})</h5>
+        </div>
+        <div class="card-body">
           <!-- Search and Filter -->
-          <div class="filters">
-            <mat-form-field appearance="outline">
-              <mat-label>Search users</mat-label>
-              <input matInput (keyup)="applyFilter($event)" #searchInput>
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Search users..." 
+                       (keyup)="applyFilter($event)" #searchInput>
+              </div>
+            </div>
             
-            <mat-form-field appearance="outline">
-              <mat-label>Filter by Role</mat-label>
-              <mat-select (selectionChange)="filterByRole($event.value)">
-                <mat-option value="">All Roles</mat-option>
-                <mat-option value="Admin">Admin</mat-option>
-                <mat-option value="Donor">Donor</mat-option>
-                <mat-option value="Recipient">Recipient</mat-option>
-              </mat-select>
-            </mat-form-field>
+            <div class="col-md-4">
+              <select class="form-select" (change)="filterByRole($event)" [value]="selectedRole">
+                <option value="">All Roles</option>
+                <option value="Admin">Admin</option>
+                <option value="Donor">Donor</option>
+                <option value="Recipient">Recipient</option>
+              </select>
+            </div>
           </div>
 
           <!-- Users Table -->
-          <div class="table-container" *ngIf="users.length > 0; else noUsersTemplate">
-            <table mat-table [dataSource]="dataSource" matSort class="users-table">
-              <!-- ID Column -->
-              <ng-container matColumnDef="userId">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-                <td mat-cell *matCellDef="let user">{{ user.userId }}</td>
-              </ng-container>
-
-              <!-- Name Column -->
-              <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-                <td mat-cell *matCellDef="let user">{{ user.name }}</td>
-              </ng-container>
-
-              <!-- Email Column -->
-              <ng-container matColumnDef="email">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
-                <td mat-cell *matCellDef="let user">{{ user.email }}</td>
-              </ng-container>
-
-              <!-- Role Column -->
-              <ng-container matColumnDef="role">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
-                <td mat-cell *matCellDef="let user">
-                  <mat-chip [ngClass]="getRoleClass(user.role)">
-                    {{ user.role }}
-                  </mat-chip>
-                </td>
-              </ng-container>
-
-              <!-- Created Date Column -->
-              <ng-container matColumnDef="createdAt">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
-                <td mat-cell *matCellDef="let user">{{ formatDate(user.createdAt) }}</td>
-              </ng-container>
-
-              <!-- Actions Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
-                <td mat-cell *matCellDef="let user">
-                  <button mat-icon-button color="primary" (click)="viewUser(user)" title="View Details">
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button mat-icon-button color="accent" (click)="editUser(user)" title="Edit User">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button mat-icon-button color="warn" (click)="deleteUser(user)" title="Delete User"
-                          [disabled]="user.role === 'Admin'">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          <div class="table-responsive" *ngIf="filteredUsers.length > 0; else noUsersTemplate">
+            <table class="table table-striped table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th scope="col" class="sortable" (click)="sortBy('userId')">
+                    ID <i class="bi bi-arrow-down-up"></i>
+                  </th>
+                  <th scope="col" class="sortable" (click)="sortBy('name')">
+                    Name <i class="bi bi-arrow-down-up"></i>
+                  </th>
+                  <th scope="col" class="sortable" (click)="sortBy('email')">
+                    Email <i class="bi bi-arrow-down-up"></i>
+                  </th>
+                  <th scope="col" class="sortable" (click)="sortBy('role')">
+                    Role <i class="bi bi-arrow-down-up"></i>
+                  </th>
+                  <th scope="col" class="sortable" (click)="sortBy('createdAt')">
+                    Created <i class="bi bi-arrow-down-up"></i>
+                  </th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of paginatedUsers">
+                  <td>{{ user.userId }}</td>
+                  <td>{{ user.name }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="getRoleClass(user.role)">
+                      {{ user.role }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(user.createdAt) }}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-primary" (click)="viewUser(user)" title="View Details">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-warning" (click)="editUser(user)" title="Edit User">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-danger" (click)="deleteUser(user)" 
+                              title="Delete User" [disabled]="user.role === 'Admin'">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
             </table>
 
-            <mat-paginator #paginator 
-                          [pageSizeOptions]="[5, 10, 20, 50]" 
-                          [pageSize]="10"
-                          showFirstLastButtons>
-            </mat-paginator>
+            <!-- Bootstrap Pagination -->
+            <nav aria-label="User pagination" *ngIf="totalPages > 1">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link" (click)="goToPage(1)" [disabled]="currentPage === 1">
+                    <i class="bi bi-chevron-double-left"></i>
+                  </button>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                </li>
+                <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+                  <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">
+                    <i class="bi bi-chevron-double-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+
+            <!-- Page Size Selector -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div>
+                <label class="form-label me-2">Show:</label>
+                <select class="form-select form-select-sm d-inline-block w-auto" 
+                        [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+                <span class="ms-2 text-muted">entries per page</span>
+              </div>
+              <div class="text-muted">
+                Showing {{ getStartIndex() + 1 }} to {{ getEndIndex() }} of {{ filteredUsers.length }} entries
+              </div>
+            </div>
           </div>
 
           <ng-template #noUsersTemplate>
-            <div class="no-data">
-              <mat-icon>people_outline</mat-icon>
-              <p>No users found</p>
+            <div class="text-center py-5">
+              <i class="bi bi-people display-1 text-muted"></i>
+              <p class="mt-3 text-muted">No users found</p>
             </div>
           </ng-template>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -171,89 +188,66 @@ interface User {
       margin: 0 auto;
     }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
+    .sortable {
+      cursor: pointer;
+      user-select: none;
     }
 
-    .header-actions {
-      display: flex;
-      gap: 10px;
+    .sortable:hover {
+      background-color: rgba(255, 255, 255, 0.1);
     }
 
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px;
-      text-align: center;
+    .role-admin { background-color: #dc3545 !important; }
+    .role-donor { background-color: #198754 !important; }
+    .role-recipient { background-color: #0d6efd !important; }
+    .role-default { background-color: #6c757d !important; }
+
+    .table th {
+      border-top: none;
     }
 
-    .loading-container p {
-      margin-top: 20px;
-      color: #666;
-      font-size: 1.1rem;
+    .btn-group .btn {
+      margin-right: 2px;
     }
 
-    .filters {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 20px;
+    .btn-group .btn:last-child {
+      margin-right: 0;
     }
 
-    .table-container {
-      overflow-x: auto;
+    .pagination .page-link {
+      color: #0d6efd;
     }
 
-    .users-table {
-      width: 100%;
+    .pagination .page-item.active .page-link {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
     }
-
-    .no-data {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-    }
-
-    .no-data mat-icon {
-      font-size: 4rem;
-      width: 4rem;
-      height: 4rem;
-      margin-bottom: 15px;
-    }
-
-    .role-admin { background-color: #f44336; color: white; }
-    .role-donor { background-color: #4caf50; color: white; }
-    .role-recipient { background-color: #2196f3; color: white; }
-    .role-default { background-color: #9e9e9e; color: white; }
   `]
 })
 export class UserManagementComponent implements OnInit {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-
   users: User[] = [];
-  dataSource = new MatTableDataSource<User>();
-  displayedColumns: string[] = ['userId', 'name', 'email', 'role', 'createdAt', 'actions'];
+  filteredUsers: User[] = [];
+  paginatedUsers: User[] = [];
   isLoading = true;
   selectedRole = '';
+  searchTerm = '';
+  
+  // Pagination properties
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
+  
+  // Sorting properties
+  sortColumn = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   constructor(
     private adminService: AdminService,
-    private userService: UserService,
-    private snackBar: MatSnackBar
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
     this.loadUsers();
-  }
-
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
   }
 
   private loadUsers(): void {
@@ -262,15 +256,13 @@ export class UserManagementComponent implements OnInit {
     this.adminService.getAllUsers().subscribe({
       next: (users) => {
         this.users = users;
-        this.dataSource.data = users;
+        this.filteredUsers = [...users];
+        this.updatePagination();
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading users:', error);
-        this.snackBar.open('Error loading user data. Please try again.', 'Close', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
+        alert('Error loading user data. Please try again.');
         this.isLoading = false;
       }
     });
@@ -281,21 +273,103 @@ export class UserManagementComponent implements OnInit {
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.searchTerm = filterValue;
+    this.filterUsers();
+    this.currentPage = 1;
+    this.updatePagination();
+  }
 
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
+  filterByRole(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.selectedRole = target.value;
+    this.filterUsers();
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  private filterUsers(): void {
+    this.filteredUsers = this.users.filter(user => {
+      const matchesSearch = !this.searchTerm || 
+        user.name.toLowerCase().includes(this.searchTerm) ||
+        user.email.toLowerCase().includes(this.searchTerm);
+      
+      const matchesRole = !this.selectedRole || user.role === this.selectedRole;
+      
+      return matchesSearch && matchesRole;
+    });
+  }
+
+  sortBy(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    
+    this.filteredUsers.sort((a, b) => {
+      let valueA = (a as any)[column];
+      let valueB = (b as any)[column];
+      
+      if (column === 'createdAt') {
+        valueA = new Date(valueA).getTime();
+        valueB = new Date(valueB).getTime();
+      } else if (typeof valueA === 'string') {
+        valueA = valueA.toLowerCase();
+        valueB = valueB.toLowerCase();
+      }
+      
+      if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+    
+    this.updatePagination();
+  }
+
+  private updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize);
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedUsers = this.filteredUsers.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
     }
   }
 
-  filterByRole(role: string): void {
-    this.selectedRole = role;
-    if (role) {
-      this.dataSource.data = this.users.filter(user => user.role === role);
-    } else {
-      this.dataSource.data = this.users;
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
     }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  }
+
+  getStartIndex(): number {
+    return (this.currentPage - 1) * this.pageSize;
+  }
+
+  getEndIndex(): number {
+    return Math.min(this.getStartIndex() + this.pageSize, this.filteredUsers.length);
   }
 
   getRoleClass(role: string): string {
@@ -318,42 +392,29 @@ export class UserManagementComponent implements OnInit {
 
   viewUser(user: User): void {
     // TODO: Implement user details dialog
-    this.snackBar.open(`Viewing details for ${user.name}`, 'Close', {
-      duration: 3000
-    });
+    alert(`Viewing details for ${user.name}`);
   }
 
   editUser(user: User): void {
     // TODO: Implement user edit dialog
-    this.snackBar.open(`Editing ${user.name}`, 'Close', {
-      duration: 3000
-    });
+    alert(`Editing ${user.name}`);
   }
 
   deleteUser(user: User): void {
     if (user.role === 'Admin') {
-      this.snackBar.open('Cannot delete admin users', 'Close', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
+      alert('Cannot delete admin users');
       return;
     }
 
     if (confirm(`Are you sure you want to delete user ${user.name}?`)) {
       this.adminService.deleteUser(user.userId).subscribe({
         next: () => {
-          this.snackBar.open(`User ${user.name} deleted successfully`, 'Close', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
+          alert(`User ${user.name} deleted successfully`);
           this.loadUsers(); // Refresh the list
         },
         error: (error) => {
           console.error('Error deleting user:', error);
-          this.snackBar.open('Error deleting user. Please try again.', 'Close', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
+          alert('Error deleting user. Please try again.');
         }
       });
     }

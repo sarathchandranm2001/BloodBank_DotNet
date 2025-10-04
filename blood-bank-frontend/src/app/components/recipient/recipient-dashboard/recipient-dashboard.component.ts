@@ -1,13 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDividerModule } from '@angular/material/divider';
 import { RecipientService } from '../../../services/recipient.service';
 import { AuthService } from '../../../services/auth.service';
 import { 
@@ -25,220 +18,261 @@ import { BloodGroupNames } from '../../../models/common.model';
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatChipsModule,
-    MatDividerModule
+    RouterModule
   ],
   template: `
-    <div class="dashboard-container">
+    <div class="container-fluid py-4">
       <!-- Welcome Header -->
-      <div class="welcome-header">
-        <div class="welcome-content">
-          <h1>Welcome back, {{ currentUser?.fullName || 'Recipient' }}!</h1>
-          <p>Manage your blood requests and check availability</p>
-        </div>
-        <div class="quick-actions">
-          <button mat-raised-button color="primary" routerLink="/recipient/request-blood">
-            <mat-icon>add</mat-icon>
-            Request Blood
-          </button>
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card bg-gradient text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h2 class="card-title mb-2">Welcome back, {{ currentUser?.fullName || 'Recipient' }}!</h2>
+                  <p class="card-text mb-0">Manage your blood requests and check availability</p>
+                </div>
+                <div>
+                  <a class="btn btn-light btn-lg" routerLink="/recipient/request-blood">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Request Blood
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="dashboard-content">
-        <!-- Profile Summary -->
-        <div class="left-column">
-          <mat-card class="profile-summary" *ngIf="recipient">
-            <mat-card-header>
-              <mat-card-title>Profile Summary</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="profile-info">
-                <div class="info-item">
-                  <mat-icon>person</mat-icon>
-                  <span>{{ recipient.userName }}</span>
+      <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+          <!-- Profile Summary -->
+          <div class="card mb-4" *ngIf="recipient">
+            <div class="card-header bg-primary text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-person-circle me-2"></i>
+                Profile Summary
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <i class="bi bi-person me-2 text-primary"></i>
+                    <span>{{ recipient.userName }}</span>
+                  </div>
+                  <div class="mb-3">
+                    <i class="bi bi-envelope me-2 text-primary"></i>
+                    <span>{{ recipient.userEmail }}</span>
+                  </div>
                 </div>
-                <div class="info-item">
-                  <mat-icon>email</mat-icon>
-                  <span>{{ recipient.userEmail }}</span>
-                </div>
-                <div class="info-item">
-                  <mat-icon>local_hospital</mat-icon>
-                  <span>{{ recipient.hospitalName }}</span>
-                </div>
-                <div class="info-item">
-                  <mat-icon>medical_services</mat-icon>
-                  <span>Dr. {{ recipient.doctorName }}</span>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <i class="bi bi-hospital me-2 text-primary"></i>
+                    <span>{{ recipient.hospitalName }}</span>
+                  </div>
+                  <div class="mb-3">
+                    <i class="bi bi-person-badge me-2 text-primary"></i>
+                    <span>Dr. {{ recipient.doctorName }}</span>
+                  </div>
                 </div>
               </div>
               
-              <mat-divider></mat-divider>
+              <hr>
               
-              <div class="stats-row">
-                <div class="stat-item">
-                  <span class="stat-number">{{ recipient.totalRequests || 0 }}</span>
-                  <span class="stat-label">Total Requests</span>
+              <div class="row text-center">
+                <div class="col-6">
+                  <div class="border-end">
+                    <h3 class="text-primary mb-1">{{ recipient.totalRequests || 0 }}</h3>
+                    <small class="text-muted">Total Requests</small>
+                  </div>
                 </div>
-                <div class="stat-item">
-                  <span class="stat-number">{{ recipient.pendingRequests || 0 }}</span>
-                  <span class="stat-label">Pending</span>
+                <div class="col-6">
+                  <h3 class="text-warning mb-1">{{ recipient.pendingRequests || 0 }}</h3>
+                  <small class="text-muted">Pending</small>
                 </div>
               </div>
-            </mat-card-content>
-            <mat-card-actions>
-              <button mat-button routerLink="/recipient/profile">
-                <mat-icon>edit</mat-icon>
+            </div>
+            <div class="card-footer">
+              <a class="btn btn-outline-primary" routerLink="/recipient/profile">
+                <i class="bi bi-pencil me-2"></i>
                 Edit Profile
-              </button>
-            </mat-card-actions>
-          </mat-card>
+              </a>
+            </div>
+          </div>
 
           <!-- Recent Requests -->
-          <mat-card class="recent-requests">
-            <mat-card-header>
-              <mat-card-title>Recent Blood Requests</mat-card-title>
-              <button mat-icon-button routerLink="/recipient/my-requests">
-                <mat-icon>arrow_forward</mat-icon>
-              </button>
-            </mat-card-header>
-            <mat-card-content>
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-clock-history me-2"></i>
+                Recent Blood Requests
+              </h5>
+              <a class="btn btn-sm btn-outline-primary" routerLink="/recipient/my-requests">
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+            <div class="card-body">
               <div *ngIf="recentRequests.length > 0; else noRequests">
-                <div *ngFor="let request of recentRequests" class="request-item">
-                  <div class="request-info">
-                    <div class="request-header">
-                      <span class="blood-group">{{ bloodGroupNames[request.bloodGroup] }}</span>
-                      <mat-chip [ngClass]="getStatusClass(request.status)">
-                        {{ statusNames[request.status] }}
-                      </mat-chip>
+                <div *ngFor="let request of recentRequests; let last = last" class="border-bottom pb-3 mb-3" [class.border-bottom]="!last">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-danger me-2 fs-6">{{ bloodGroupNames[request.bloodGroup] }}</span>
+                        <span class="badge" [ngClass]="getStatusClass(request.status)">
+                          {{ statusNames[request.status] }}
+                        </span>
+                      </div>
+                      <div class="text-muted small">
+                        <span class="me-3">{{ request.unitsRequested }} units</span>
+                        <span>{{ request.requestDate | date:'short' }}</span>
+                      </div>
                     </div>
-                    <div class="request-details">
-                      <span>{{ request.unitsRequested }} units</span>
-                      <span>{{ request.requestDate | date:'short' }}</span>
+                    <div>
+                      <span class="badge" [ngClass]="getUrgencyClass(request.urgency)">
+                        {{ urgencyNames[request.urgency] }}
+                      </span>
                     </div>
-                  </div>
-                  <div class="urgency-indicator">
-                    <mat-chip [ngClass]="getUrgencyClass(request.urgency)">
-                      {{ urgencyNames[request.urgency] }}
-                    </mat-chip>
                   </div>
                 </div>
               </div>
               <ng-template #noRequests>
-                <div class="no-requests">
-                  <mat-icon>inbox</mat-icon>
-                  <p>No blood requests yet</p>
-                  <button mat-stroked-button routerLink="/recipient/request-blood">
+                <div class="text-center py-4">
+                  <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+                  <p class="text-muted mb-3">No blood requests yet</p>
+                  <a class="btn btn-primary" routerLink="/recipient/request-blood">
+                    <i class="bi bi-plus-circle me-2"></i>
                     Create First Request
-                  </button>
+                  </a>
                 </div>
               </ng-template>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
 
         <!-- Right Column -->
-        <div class="right-column">
+        <div class="col-lg-4">
           <!-- Quick Actions -->
-          <mat-card class="quick-actions-card">
-            <mat-card-header>
-              <mat-card-title>Quick Actions</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="actions-grid">
-                <button mat-raised-button color="primary" routerLink="/recipient/request-blood">
-                  <mat-icon>add_circle</mat-icon>
-                  <span>New Blood Request</span>
-                </button>
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-lightning me-2"></i>
+                Quick Actions
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="d-grid gap-2">
+                <a class="btn btn-danger btn-lg" routerLink="/recipient/request-blood">
+                  <i class="bi bi-plus-circle-fill me-2"></i>
+                  New Blood Request
+                </a>
                 
-                <button mat-stroked-button routerLink="/recipient/my-requests">
-                  <mat-icon>list</mat-icon>
-                  <span>My Requests</span>
-                </button>
+                <a class="btn btn-outline-primary" routerLink="/recipient/my-requests">
+                  <i class="bi bi-list-ul me-2"></i>
+                  My Requests
+                </a>
                 
-                <button mat-stroked-button routerLink="/recipient/blood-availability">
-                  <mat-icon>search</mat-icon>
-                  <span>Check Availability</span>
-                </button>
+                <a class="btn btn-outline-success" routerLink="/recipient/blood-availability">
+                  <i class="bi bi-search me-2"></i>
+                  Check Availability
+                </a>
                 
-                <button mat-stroked-button routerLink="/recipient/profile">
-                  <mat-icon>person</mat-icon>
-                  <span>My Profile</span>
-                </button>
+                <a class="btn btn-outline-secondary" routerLink="/recipient/profile">
+                  <i class="bi bi-person me-2"></i>
+                  My Profile
+                </a>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
 
           <!-- Blood Availability Quick View -->
-          <mat-card class="availability-summary" *ngIf="bloodAvailability.length > 0">
-            <mat-card-header>
-              <mat-card-title>Blood Availability</mat-card-title>
-              <button mat-icon-button routerLink="/recipient/blood-availability">
-                <mat-icon>arrow_forward</mat-icon>
-              </button>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="availability-grid">
-                <div *ngFor="let stock of bloodAvailability.slice(0, 4)" 
-                     class="availability-item" 
-                     [ngClass]="getAvailabilityClass(stock)">
-                  <div class="blood-group">{{ bloodGroupNames[stock.bloodGroup] }}</div>
-                  <div class="units">{{ stock.availableUnits }} units</div>
-                  <mat-icon>{{ getAvailabilityIcon(stock) }}</mat-icon>
+          <div class="card mb-4" *ngIf="bloodAvailability.length > 0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-droplet me-2"></i>
+                Blood Availability
+              </h5>
+              <a class="btn btn-sm btn-outline-primary" routerLink="/recipient/blood-availability">
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+            <div class="card-body">
+              <div class="row g-2 mb-3">
+                <div *ngFor="let stock of bloodAvailability.slice(0, 4)" class="col-6">
+                  <div class="card text-center" [ngClass]="getAvailabilityClass(stock)">
+                    <div class="card-body py-2">
+                      <div class="fw-bold">{{ bloodGroupNames[stock.bloodGroup] }}</div>
+                      <small>{{ stock.availableUnits }} units</small>
+                      <div>
+                        <i class="bi" [ngClass]="getAvailabilityIcon(stock)"></i>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button mat-button routerLink="/recipient/blood-availability" class="view-all-btn">
+              <a class="btn btn-sm btn-outline-primary w-100" routerLink="/recipient/blood-availability">
                 View All Blood Groups
-              </button>
-            </mat-card-content>
-          </mat-card>
+              </a>
+            </div>
+          </div>
 
           <!-- Tips & Guidelines -->
-          <mat-card class="tips-card">
-            <mat-card-header>
-              <mat-card-title>Tips & Guidelines</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="tips-list">
-                <div class="tip-item">
-                  <mat-icon>info</mat-icon>
-                  <span>Request blood at least 24-48 hours in advance for non-emergency cases</span>
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-lightbulb me-2"></i>
+                Tips & Guidelines
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="list-group list-group-flush">
+                <div class="list-group-item px-0 border-0">
+                  <i class="bi bi-info-circle text-info me-2"></i>
+                  <small>Request blood at least 24-48 hours in advance for non-emergency cases</small>
                 </div>
-                <div class="tip-item">
-                  <mat-icon>warning</mat-icon>
-                  <span>For critical cases, mark your request as "Critical" urgency level</span>
+                <div class="list-group-item px-0 border-0">
+                  <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                  <small>For critical cases, mark your request as "Critical" urgency level</small>
                 </div>
-                <div class="tip-item">
-                  <mat-icon>schedule</mat-icon>
-                  <span>Check blood availability before making requests</span>
+                <div class="list-group-item px-0 border-0">
+                  <i class="bi bi-clock text-primary me-2"></i>
+                  <small>Check blood availability before making requests</small>
                 </div>
-                <div class="tip-item">
-                  <mat-icon>contact_support</mat-icon>
-                  <span>Contact your doctor for any medical questions</span>
+                <div class="list-group-item px-0 border-0">
+                  <i class="bi bi-telephone text-success me-2"></i>
+                  <small>Contact your doctor for any medical questions</small>
                 </div>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Loading State -->
-      <div class="loading-container" *ngIf="isLoading">
-        <mat-spinner></mat-spinner>
-        <p>Loading dashboard...</p>
+      <div class="text-center py-5" *ngIf="isLoading">
+        <div class="spinner-border text-primary me-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mb-0">Loading dashboard...</p>
       </div>
     </div>
   `,
   styles: [`
-    .dashboard-container {
-      padding: 20px;
-      max-width: 1400px;
-      margin: 0 auto;
-      min-height: calc(100vh - 64px);
+    .bg-gradient {
+      background: linear-gradient(135deg, #dc3545 0%, #6f42c1 100%);
+    }
+    
+    .card.border-success {
+      border-color: #198754 !important;
+    }
+    
+    .card.border-warning {
+      border-color: #ffc107 !important;
+    }
+    
+    .card.border-danger {
+      border-color: #dc3545 !important;
     }
 
     .welcome-header {
@@ -584,8 +618,7 @@ export class RecipientDashboardComponent implements OnInit {
 
   constructor(
     private recipientService: RecipientService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -688,10 +721,6 @@ export class RecipientDashboardComponent implements OnInit {
   }
 
   private showMessage(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
+    alert(message);
   }
 }

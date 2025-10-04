@@ -1,12 +1,12 @@
 export enum BloodGroup {
-  APositive = 0,
-  ANegative = 1,
-  BPositive = 2,
-  BNegative = 3,
-  ABPositive = 4,
-  ABNegative = 5,
-  OPositive = 6,
-  ONegative = 7
+  APositive = 1,
+  ANegative = 2,
+  BPositive = 3,
+  BNegative = 4,
+  ABPositive = 5,
+  ABNegative = 6,
+  OPositive = 7,
+  ONegative = 8
 }
 
 export const BloodGroupNames = {

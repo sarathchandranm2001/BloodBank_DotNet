@@ -1,20 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatTableModule } from '@angular/material/table';
-import { MatSortModule } from '@angular/material/sort';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatMenuModule } from '@angular/material/menu';
+
 import { RecipientService } from '../../../services/recipient.service';
 import { 
   BloodRequest, 
@@ -31,202 +19,196 @@ import { BloodGroupNames } from '../../../models/common.model';
   imports: [
     CommonModule,
     RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatTableModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatDialogModule,
-    MatMenuModule
+    FormsModule
   ],
   template: `
     <div class="requests-container">
-      <div class="header">
-        <h1>My Blood Requests</h1>
-        <button mat-raised-button color="primary" routerLink="/recipient/request-blood">
-          <mat-icon>add</mat-icon>
+      <div class="header d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">My Blood Requests</h1>
+        <button class="btn btn-primary" routerLink="/recipient/request-blood">
+          <i class="bi bi-plus-circle me-1"></i>
           New Request
         </button>
       </div>
 
       <!-- Filters -->
-      <mat-card class="filters-card">
-        <mat-card-content>
-          <div class="filters">
-            <mat-form-field appearance="outline">
-              <mat-label>Status Filter</mat-label>
-              <mat-select [(value)]="selectedStatus" (selectionChange)="applyFilters()">
-                <mat-option value="">All Statuses</mat-option>
-                <mat-option *ngFor="let status of statusOptions" [value]="status">
+      <div class="card filters-card mb-4">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Status Filter</label>
+              <select class="form-select" [(ngModel)]="selectedStatus" (change)="applyFilters()">
+                <option value="">All Statuses</option>
+                <option *ngFor="let status of statusOptions" [value]="status">
                   {{ statusNames[status] }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+                </option>
+              </select>
+            </div>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Urgency Filter</mat-label>
-              <mat-select [(value)]="selectedUrgency" (selectionChange)="applyFilters()">
-                <mat-option value="">All Urgency Levels</mat-option>
-                <mat-option *ngFor="let urgency of urgencyOptions" [value]="urgency">
+            <div class="col-md-4">
+              <label class="form-label">Urgency Filter</label>
+              <select class="form-select" [(ngModel)]="selectedUrgency" (change)="applyFilters()">
+                <option value="">All Urgency Levels</option>
+                <option *ngFor="let urgency of urgencyOptions" [value]="urgency">
                   {{ urgencyNames[urgency] }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+                </option>
+              </select>
+            </div>
 
-            <button mat-stroked-button (click)="clearFilters()">
-              <mat-icon>clear</mat-icon>
-              Clear Filters
-            </button>
+            <div class="col-md-4 d-flex align-items-end">
+              <button class="btn btn-outline-secondary" (click)="clearFilters()">
+                <i class="bi bi-x-circle me-1"></i>
+                Clear Filters
+              </button>
+            </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
 
       <!-- Requests List -->
-      <div class="requests-grid" *ngIf="!isLoading && filteredRequests.length > 0">
-        <mat-card *ngFor="let request of filteredRequests" class="request-card">
-          <mat-card-header>
-            <div class="request-header">
-              <div class="request-title">
-                <h3>{{ bloodGroupNames[request.bloodGroup] }} Blood Request</h3>
-                <mat-chip [ngClass]="getStatusClass(request.status)">
-                  {{ statusNames[request.status] }}
-                </mat-chip>
+      <div class="requests-grid row g-3" *ngIf="!isLoading && filteredRequests.length > 0">
+        <div class="col-lg-6" *ngFor="let request of filteredRequests">
+          <div class="card request-card h-100">
+            <div class="card-header">
+              <div class="request-header d-flex justify-content-between align-items-start">
+                <div class="request-title">
+                  <h5 class="mb-2">{{ bloodGroupNames[request.bloodGroup] }} Blood Request</h5>
+                  <span class="badge" [ngClass]="getStatusClass(request.status)">
+                    {{ statusNames[request.status] }}
+                  </span>
+                </div>
+                <div class="dropdown">
+                  <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
+                          data-bs-toggle="dropdown" (click)="selectRequest(request)">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" (click)="selectedRequest && viewRequestDetails(selectedRequest); $event.preventDefault()">
+                      <i class="bi bi-eye me-2"></i>View Details
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" (click)="selectedRequest && editRequest(selectedRequest); $event.preventDefault()">
+                      <i class="bi bi-pencil me-2"></i>Edit Request
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" (click)="selectedRequest && cancelRequest(selectedRequest); $event.preventDefault()">
+                      <i class="bi bi-x-circle me-2"></i>Cancel Request
+                    </a></li>
+                  </ul>
+                </div>
               </div>
-              <div class="request-actions">
-                <button mat-icon-button [matMenuTriggerFor]="menu" (click)="selectRequest(request)">
-                  <mat-icon>more_vert</mat-icon>
+            </div>
+
+            <div class="card-body">
+              <div class="request-details">
+                <div class="detail-row d-flex align-items-center mb-2">
+                  <i class="bi bi-droplet-fill me-2 text-danger"></i>
+                  <span><strong>Blood Group:</strong> {{ bloodGroupNames[request.bloodGroup] }}</span>
+                </div>
+                
+                <div class="detail-row d-flex align-items-center mb-2">
+                  <i class="bi bi-hash me-2 text-info"></i>
+                  <span><strong>Units Requested:</strong> {{ request.unitsRequested }}</span>
+                </div>
+                
+                <div class="detail-row d-flex align-items-center mb-2">
+                  <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+                  <span><strong>Urgency:</strong> 
+                    <span class="badge ms-1" [ngClass]="getUrgencyClass(request.urgency)">
+                      {{ urgencyNames[request.urgency] }}
+                    </span>
+                  </span>
+                </div>
+                
+                <div class="detail-row d-flex align-items-center mb-2">
+                  <i class="bi bi-clock me-2 text-primary"></i>
+                  <span><strong>Required By:</strong> {{ request.requiredByDate | date:'medium' }}</span>
+                </div>
+                
+                <div class="detail-row d-flex align-items-center mb-2">
+                  <i class="bi bi-calendar-event me-2 text-secondary"></i>
+                  <span><strong>Requested On:</strong> {{ request.requestDate | date:'medium' }}</span>
+                </div>
+                
+                <div class="detail-row d-flex align-items-center mb-2" *ngIf="request.approvedDate">
+                  <i class="bi bi-check-circle me-2 text-success"></i>
+                  <span><strong>Approved On:</strong> {{ request.approvedDate | date:'medium' }}</span>
+                </div>
+                
+                <div class="detail-row d-flex align-items-center mb-2" *ngIf="request.fulfilledDate">
+                  <i class="bi bi-check-all me-2 text-success"></i>
+                  <span><strong>Fulfilled On:</strong> {{ request.fulfilledDate | date:'medium' }}</span>
+                </div>
+              </div>
+
+              <div class="request-reason mt-3" *ngIf="request.requestReason">
+                <h6>Medical Justification:</h6>
+                <p class="text-muted">{{ request.requestReason }}</p>
+              </div>
+
+              <div class="notes-section mt-3" *ngIf="request.doctorNotes || request.adminNotes">
+                <div class="doctor-notes mb-2" *ngIf="request.doctorNotes">
+                  <h6>Doctor's Notes:</h6>
+                  <p class="text-muted">{{ request.doctorNotes }}</p>
+                </div>
+                
+                <div class="admin-notes" *ngIf="request.adminNotes">
+                  <h6>Admin Notes:</h6>
+                  <p class="text-muted">{{ request.adminNotes }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer bg-transparent">
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-primary btn-sm" (click)="viewDetails(request)">
+                  <i class="bi bi-eye me-1"></i>
+                  View Details
+                </button>
+                
+                <button class="btn btn-outline-warning btn-sm" (click)="editRequest(request)" 
+                        *ngIf="canEditRequest(request)">
+                  <i class="bi bi-pencil me-1"></i>
+                  Edit
+                </button>
+                
+                <button class="btn btn-outline-danger btn-sm" (click)="cancelRequest(request)"
+                        *ngIf="canCancelRequest(request)">
+                  <i class="bi bi-x-circle me-1"></i>
+                  Cancel
                 </button>
               </div>
             </div>
-          </mat-card-header>
-
-          <mat-card-content>
-            <div class="request-details">
-              <div class="detail-row">
-                <mat-icon>bloodtype</mat-icon>
-                <span><strong>Blood Group:</strong> {{ bloodGroupNames[request.bloodGroup] }}</span>
-              </div>
-              
-              <div class="detail-row">
-                <mat-icon>format_list_numbered</mat-icon>
-                <span><strong>Units Requested:</strong> {{ request.unitsRequested }}</span>
-              </div>
-              
-              <div class="detail-row">
-                <mat-icon>priority_high</mat-icon>
-                <span><strong>Urgency:</strong> 
-                  <mat-chip [ngClass]="getUrgencyClass(request.urgency)">
-                    {{ urgencyNames[request.urgency] }}
-                  </mat-chip>
-                </span>
-              </div>
-              
-              <div class="detail-row">
-                <mat-icon>schedule</mat-icon>
-                <span><strong>Required By:</strong> {{ request.requiredByDate | date:'medium' }}</span>
-              </div>
-              
-              <div class="detail-row">
-                <mat-icon>calendar_today</mat-icon>
-                <span><strong>Requested On:</strong> {{ request.requestDate | date:'medium' }}</span>
-              </div>
-              
-              <div class="detail-row" *ngIf="request.approvedDate">
-                <mat-icon>check_circle</mat-icon>
-                <span><strong>Approved On:</strong> {{ request.approvedDate | date:'medium' }}</span>
-              </div>
-              
-              <div class="detail-row" *ngIf="request.fulfilledDate">
-                <mat-icon>done_all</mat-icon>
-                <span><strong>Fulfilled On:</strong> {{ request.fulfilledDate | date:'medium' }}</span>
-              </div>
-            </div>
-
-            <div class="request-reason" *ngIf="request.requestReason">
-              <h4>Medical Justification:</h4>
-              <p>{{ request.requestReason }}</p>
-            </div>
-
-            <div class="notes-section" *ngIf="request.doctorNotes || request.adminNotes">
-              <div class="doctor-notes" *ngIf="request.doctorNotes">
-                <h4>Doctor's Notes:</h4>
-                <p>{{ request.doctorNotes }}</p>
-              </div>
-              
-              <div class="admin-notes" *ngIf="request.adminNotes">
-                <h4>Admin Notes:</h4>
-                <p>{{ request.adminNotes }}</p>
-              </div>
-            </div>
-          </mat-card-content>
-
-          <mat-card-actions>
-            <button mat-button (click)="viewDetails(request)">
-              <mat-icon>visibility</mat-icon>
-              View Details
-            </button>
-            
-            <button mat-button (click)="editRequest(request)" 
-                    *ngIf="canEditRequest(request)">
-              <mat-icon>edit</mat-icon>
-              Edit
-            </button>
-            
-            <button mat-button color="warn" (click)="cancelRequest(request)"
-                    *ngIf="canCancelRequest(request)">
-              <mat-icon>cancel</mat-icon>
-              Cancel
-            </button>
-          </mat-card-actions>
-        </mat-card>
+          </div>
+        </div>
       </div>
 
       <!-- Empty State -->
-      <div class="empty-state" *ngIf="!isLoading && filteredRequests.length === 0">
-        <mat-icon>inbox</mat-icon>
+      <div class="empty-state text-center py-5" *ngIf="!isLoading && filteredRequests.length === 0">
+        <i class="bi bi-inbox display-1 text-muted mb-3"></i>
         <h2>No blood requests found</h2>
-        <p>{{ requests.length === 0 ? "You haven't made any blood requests yet." : "No requests match your current filters." }}</p>
-        <button mat-raised-button color="primary" routerLink="/recipient/request-blood" 
-                *ngIf="requests.length === 0">
-          <mat-icon>add</mat-icon>
-          Create Your First Request
-        </button>
-        <button mat-stroked-button (click)="clearFilters()" 
-                *ngIf="requests.length > 0">
-          <mat-icon>clear</mat-icon>
-          Clear Filters
-        </button>
+        <p class="text-muted">{{ requests.length === 0 ? "You haven't made any blood requests yet." : "No requests match your current filters." }}</p>
+        <div class="mt-3">
+          <button class="btn btn-primary me-2" routerLink="/recipient/request-blood" 
+                  *ngIf="requests.length === 0">
+            <i class="bi bi-plus-circle me-1"></i>
+            Create Your First Request
+          </button>
+          <button class="btn btn-outline-secondary" (click)="clearFilters()" 
+                  *ngIf="requests.length > 0">
+            <i class="bi bi-x-circle me-1"></i>
+            Clear Filters
+          </button>
+        </div>
       </div>
 
       <!-- Loading State -->
-      <div class="loading-container" *ngIf="isLoading">
-        <mat-spinner></mat-spinner>
-        <p>Loading your requests...</p>
+      <div class="loading-container text-center py-5" *ngIf="isLoading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading your requests...</p>
       </div>
     </div>
-
-    <!-- Menu for actions -->
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item (click)="viewRequestDetails(selectedRequest)" *ngIf="selectedRequest">
-        <mat-icon>visibility</mat-icon>
-        <span>View Details</span>
-      </button>
-      <button mat-menu-item (click)="editRequest(selectedRequest)" *ngIf="selectedRequest">
-        <mat-icon>edit</mat-icon>
-        <span>Edit Request</span>
-      </button>
-      <button mat-menu-item (click)="cancelRequest(selectedRequest)" *ngIf="selectedRequest" class="danger">
-        <mat-icon>cancel</mat-icon>
-        <span>Cancel Request</span>
-      </button>
-    </mat-menu>
   `,
   styles: [`
     .requests-container {
@@ -476,9 +458,7 @@ export class MyRequestsComponent implements OnInit {
   bloodGroupNames = BloodGroupNames;
 
   constructor(
-    private recipientService: RecipientService,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private recipientService: RecipientService
   ) {}
 
   ngOnInit(): void {
@@ -582,10 +562,6 @@ export class MyRequestsComponent implements OnInit {
   }
 
   private showMessage(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
+    alert(message);
   }
 }

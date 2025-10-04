@@ -11,6 +11,22 @@ import {
 } from '../models/donor.model';
 import { BloodGroup } from '../models/common.model';
 
+// Backend DTO structure for API calls
+interface DonorRegistrationDTO {
+  userId: number;
+  bloodGroup: BloodGroup;
+  lastDonationDate?: Date;
+  contactInfo: {
+    Phone: string;
+    Address: string;
+    City: string;
+    State: string;
+    ZipCode: string;
+    Country: string;
+  };
+  medicalHistory: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -36,7 +52,28 @@ export class DonorService {
 
   // Register new donor
   registerDonor(donorData: DonorRegistration): Observable<Donor> {
-    return this.http.post<Donor>(this.apiUrl, donorData);
+    console.log('🔍 SERVICE: Input donorData:', donorData);
+    
+    // Convert frontend model to backend DTO structure
+    const dtoData: DonorRegistrationDTO = {
+      userId: donorData.userId,
+      bloodGroup: donorData.bloodGroup,
+      lastDonationDate: donorData.lastDonationDate,
+      contactInfo: {
+        Phone: donorData.contactInfo.phone,
+        Address: donorData.contactInfo.address,
+        City: donorData.contactInfo.city,
+        State: donorData.contactInfo.state,
+        ZipCode: donorData.contactInfo.zipCode,
+        Country: donorData.contactInfo.country
+      },
+      medicalHistory: donorData.medicalHistory
+    };
+
+    console.log('🔍 SERVICE: Sending DTO to backend:', dtoData);
+    console.log('🔍 SERVICE: DTO JSON:', JSON.stringify(dtoData, null, 2));
+
+    return this.http.post<Donor>(`${this.apiUrl}/register`, dtoData);
   }
 
   // Update donor information

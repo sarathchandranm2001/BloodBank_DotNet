@@ -19,7 +19,14 @@ export interface RecipientRegistration {
   userId: number;
   hospitalName: string;
   doctorName: string;
-  contactInfo: ContactInfo;
+  contactInfo: {
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
   medicalCondition: string;
 }
 

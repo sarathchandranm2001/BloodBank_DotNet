@@ -1,15 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatChipsModule } from '@angular/material/chips';
 import { RecipientService } from '../../../services/recipient.service';
 import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
 
@@ -18,224 +9,260 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatDividerModule,
-    MatChipsModule
+    ReactiveFormsModule
   ],
   template: `
-    <div class="profile-container" *ngIf="recipient">
-      <div class="profile-header">
-        <mat-card class="header-card">
-          <mat-card-content>
-            <div class="header-content">
-              <div class="profile-info">
-                <h1>{{ recipient.userName }}</h1>
-                <p class="email">{{ recipient.userEmail }}</p>
-                <div class="stats">
-                  <mat-chip-set>
-                    <mat-chip>Total Requests: {{ recipient.totalRequests || 0 }}</mat-chip>
-                    <mat-chip>Pending: {{ recipient.pendingRequests || 0 }}</mat-chip>
-                  </mat-chip-set>
+    <div class="container-fluid py-4" *ngIf="recipient">
+      <!-- Profile Header -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card bg-gradient text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h1 class="card-title mb-2">{{ recipient.userName }}</h1>
+                  <p class="card-text mb-2">{{ recipient.userEmail }}</p>
+                  <div class="d-flex gap-2">
+                    <span class="badge bg-light text-dark">Total Requests: {{ recipient.totalRequests || 0 }}</span>
+                    <span class="badge bg-warning text-dark">Pending: {{ recipient.pendingRequests || 0 }}</span>
+                  </div>
                 </div>
-              </div>
-              <div class="profile-actions">
-                <button mat-raised-button color="primary" (click)="toggleEdit()">
-                  <mat-icon>{{ isEditing ? 'cancel' : 'edit' }}</mat-icon>
-                  {{ isEditing ? 'Cancel' : 'Edit Profile' }}
-                </button>
+                <div>
+                  <button class="btn btn-light btn-lg" (click)="toggleEdit()">
+                    <i class="bi" [ngClass]="isEditing ? 'bi-x-circle' : 'bi-pencil'"></i>
+                    {{ isEditing ? 'Cancel' : 'Edit Profile' }}
+                  </button>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
       </div>
 
-      <div class="profile-content">
-        <div class="left-column">
-          <mat-card class="profile-details">
-            <mat-card-header>
-              <mat-card-title>Profile Details</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
+      <div class="row">
+        <!-- Left Column - Profile Details -->
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-person-circle me-2"></i>
+                Profile Details
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- Edit Form -->
               <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" *ngIf="isEditing">
-                <div class="form-section">
-                  <h3>Hospital Information</h3>
+                <!-- Hospital Information -->
+                <div class="mb-4">
+                  <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-hospital me-2"></i>Hospital Information
+                  </h6>
                   
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Hospital Name</mat-label>
-                    <input matInput formControlName="hospitalName">
-                    <mat-error *ngIf="profileForm.get('hospitalName')?.hasError('required')">
+                  <div class="mb-3">
+                    <label for="hospitalName" class="form-label">Hospital Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="hospitalName" 
+                           formControlName="hospitalName"
+                           [class.is-invalid]="profileForm.get('hospitalName')?.invalid && profileForm.get('hospitalName')?.touched">
+                    <div class="invalid-feedback" *ngIf="profileForm.get('hospitalName')?.hasError('required') && profileForm.get('hospitalName')?.touched">
                       Hospital name is required
-                    </mat-error>
-                  </mat-form-field>
+                    </div>
+                  </div>
 
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Doctor Name</mat-label>
-                    <input matInput formControlName="doctorName">
-                    <mat-error *ngIf="profileForm.get('doctorName')?.hasError('required')">
+                  <div class="mb-3">
+                    <label for="doctorName" class="form-label">Doctor Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="doctorName" 
+                           formControlName="doctorName"
+                           [class.is-invalid]="profileForm.get('doctorName')?.invalid && profileForm.get('doctorName')?.touched">
+                    <div class="invalid-feedback" *ngIf="profileForm.get('doctorName')?.hasError('required') && profileForm.get('doctorName')?.touched">
                       Doctor name is required
-                    </mat-error>
-                  </mat-form-field>
-                </div>
-
-                <div class="form-section" formGroupName="contactInfo">
-                  <h3>Contact Information</h3>
-                  
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Address</mat-label>
-                    <textarea matInput formControlName="address" rows="3"></textarea>
-                  </mat-form-field>
-
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>City</mat-label>
-                      <input matInput formControlName="city">
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>State</mat-label>
-                      <input matInput formControlName="state">
-                    </mat-form-field>
-                  </div>
-
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Pin Code</mat-label>
-                      <input matInput formControlName="pinCode">
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline" class="half-width">
-                      <mat-label>Phone Number</mat-label>
-                      <input matInput formControlName="phoneNumber">
-                    </mat-form-field>
+                    </div>
                   </div>
                 </div>
 
-                <div class="form-section">
-                  <h3>Medical Information</h3>
+                <!-- Contact Information -->
+                <div class="mb-4" formGroupName="contactInfo">
+                  <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-telephone me-2"></i>Contact Information
+                  </h6>
                   
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Medical Condition</mat-label>
-                    <textarea matInput formControlName="medicalCondition" rows="4"></textarea>
-                  </mat-form-field>
+                  <div class="mb-3">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea class="form-control" id="address" rows="3" formControlName="address"></textarea>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="city" class="form-label">City</label>
+                      <input type="text" class="form-control" id="city" formControlName="city">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="state" class="form-label">State</label>
+                      <input type="text" class="form-control" id="state" formControlName="state">
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="pinCode" class="form-label">Pin Code</label>
+                      <input type="text" class="form-control" id="pinCode" formControlName="pinCode">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="phoneNumber" class="form-label">Phone Number</label>
+                      <input type="text" class="form-control" id="phoneNumber" formControlName="phoneNumber">
+                    </div>
+                  </div>
                 </div>
 
-                <div class="form-actions">
-                  <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-                  <button mat-raised-button color="primary" type="submit" 
-                          [disabled]="profileForm.invalid || isLoading">
-                    <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+                <!-- Medical Information -->
+                <div class="mb-4">
+                  <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-heart-pulse me-2"></i>Medical Information
+                  </h6>
+                  
+                  <div class="mb-3">
+                    <label for="medicalCondition" class="form-label">Medical Condition</label>
+                    <textarea class="form-control" id="medicalCondition" rows="4" formControlName="medicalCondition"></textarea>
+                  </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-end gap-2">
+                  <button type="button" class="btn btn-outline-secondary" (click)="cancelEdit()">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                  </button>
+                  <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid || isLoading">
+                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <i *ngIf="!isLoading" class="bi bi-check-circle me-2"></i>
                     {{ isLoading ? 'Updating...' : 'Update Profile' }}
                   </button>
                 </div>
               </form>
 
-              <div *ngIf="!isEditing" class="view-mode">
-                <div class="info-section">
-                  <h3>Hospital Information</h3>
-                  <div class="info-item">
-                    <strong>Hospital:</strong> {{ recipient.hospitalName }}
+              <!-- View Mode -->
+              <div *ngIf="!isEditing">
+                <!-- Hospital Information -->
+                <div class="mb-4">
+                  <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-hospital me-2"></i>Hospital Information
+                  </h6>
+                  <div class="row">
+                    <div class="col-sm-3"><strong>Hospital:</strong></div>
+                    <div class="col-sm-9">{{ recipient.hospitalName }}</div>
                   </div>
-                  <div class="info-item">
-                    <strong>Doctor:</strong> {{ recipient.doctorName }}
-                  </div>
-                </div>
-
-                <mat-divider></mat-divider>
-
-                <div class="info-section">
-                  <h3>Contact Information</h3>
-                  <div class="info-item">
-                    <strong>Address:</strong> {{ recipient.contactInfo.address }}
-                  </div>
-                  <div class="info-item">
-                    <strong>City:</strong> {{ recipient.contactInfo.city }}
-                  </div>
-                  <div class="info-item">
-                    <strong>State:</strong> {{ recipient.contactInfo.state }}
-                  </div>
-                  <div class="info-item">
-                    <strong>Pin Code:</strong> {{ recipient.contactInfo.pinCode }}
-                  </div>
-                  <div class="info-item">
-                    <strong>Phone:</strong> {{ recipient.contactInfo.phoneNumber }}
+                  <div class="row mt-2">
+                    <div class="col-sm-3"><strong>Doctor:</strong></div>
+                    <div class="col-sm-9">{{ recipient.doctorName }}</div>
                   </div>
                 </div>
 
-                <mat-divider></mat-divider>
+                <hr>
 
-                <div class="info-section">
-                  <h3>Medical Information</h3>
-                  <div class="info-item">
-                    <strong>Medical Condition:</strong>
-                    <p class="medical-condition">{{ recipient.medicalCondition }}</p>
+                <!-- Contact Information -->
+                <div class="mb-4">
+                  <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-telephone me-2"></i>Contact Information
+                  </h6>
+                  <div class="row mb-2">
+                    <div class="col-sm-3"><strong>Address:</strong></div>
+                    <div class="col-sm-9">{{ recipient.contactInfo.address }}</div>
+                  </div>
+                  <div class="row mb-2">
+                    <div class="col-sm-3"><strong>City:</strong></div>
+                    <div class="col-sm-9">{{ recipient.contactInfo.city }}</div>
+                  </div>
+                  <div class="row mb-2">
+                    <div class="col-sm-3"><strong>State:</strong></div>
+                    <div class="col-sm-9">{{ recipient.contactInfo.state }}</div>
+                  </div>
+                  <div class="row mb-2">
+                    <div class="col-sm-3"><strong>Pin Code:</strong></div>
+                    <div class="col-sm-9">{{ recipient.contactInfo.pinCode }}</div>
+                  </div>
+                  <div class="row mb-2">
+                    <div class="col-sm-3"><strong>Phone:</strong></div>
+                    <div class="col-sm-9">{{ recipient.contactInfo.phoneNumber }}</div>
                   </div>
                 </div>
 
-                <mat-divider></mat-divider>
+                <hr>
 
-                <div class="info-section">
-                  <h3>Registration Details</h3>
-                  <div class="info-item">
-                    <strong>Registered On:</strong> {{ recipient.createdAt | date:'medium' }}
+                <!-- Medical Information -->
+                <div class="mb-4">
+                  <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-heart-pulse me-2"></i>Medical Information
+                  </h6>
+                  <div class="row">
+                    <div class="col-sm-3"><strong>Medical Condition:</strong></div>
+                    <div class="col-sm-9">
+                      <p class="mb-0 text-break">{{ recipient.medicalCondition }}</p>
+                    </div>
                   </div>
-                  <div class="info-item" *ngIf="recipient.updatedAt">
-                    <strong>Last Updated:</strong> {{ recipient.updatedAt | date:'medium' }}
+                </div>
+
+                <hr>
+
+                <!-- Registration Details -->
+                <div class="mb-4">
+                  <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-calendar me-2"></i>Registration Details
+                  </h6>
+                  <div class="row mb-2">
+                    <div class="col-sm-3"><strong>Registered On:</strong></div>
+                    <div class="col-sm-9">{{ recipient.createdAt | date:'medium' }}</div>
+                  </div>
+                  <div class="row" *ngIf="recipient.updatedAt">
+                    <div class="col-sm-3"><strong>Last Updated:</strong></div>
+                    <div class="col-sm-9">{{ recipient.updatedAt | date:'medium' }}</div>
                   </div>
                 </div>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
 
-        <div class="right-column">
-          <mat-card class="actions-card">
-            <mat-card-header>
-              <mat-card-title>Quick Actions</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="quick-actions">
-                <button mat-raised-button color="accent" routerLink="/recipient/request-blood">
-                  <mat-icon>add</mat-icon>
+        <!-- Right Column - Quick Actions -->
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-lightning me-2"></i>
+                Quick Actions
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="d-grid gap-2">
+                <a class="btn btn-danger btn-lg" routerLink="/recipient/request-blood">
+                  <i class="bi bi-plus-circle-fill me-2"></i>
                   New Blood Request
-                </button>
+                </a>
                 
-                <button mat-stroked-button routerLink="/recipient/my-requests">
-                  <mat-icon>list</mat-icon>
+                <a class="btn btn-outline-primary" routerLink="/recipient/my-requests">
+                  <i class="bi bi-list-ul me-2"></i>
                   My Requests
-                </button>
+                </a>
                 
-                <button mat-stroked-button routerLink="/recipient/blood-availability">
-                  <mat-icon>search</mat-icon>
+                <a class="btn btn-outline-success" routerLink="/recipient/blood-availability">
+                  <i class="bi bi-search me-2"></i>
                   Check Availability
-                </button>
+                </a>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="loading-container" *ngIf="!recipient && isLoading">
-      <mat-spinner></mat-spinner>
-      <p>Loading profile...</p>
+    <!-- Loading State -->
+    <div class="text-center py-5" *ngIf="!recipient && isLoading">
+      <div class="spinner-border text-primary me-3" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mb-0">Loading profile...</p>
     </div>
   `,
   styles: [`
-    .profile-container {
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .profile-header {
-      margin-bottom: 30px;
+    .bg-gradient {
+      background: linear-gradient(135deg, #dc3545 0%, #6f42c1 100%);
     }
 
     .header-card {
@@ -356,7 +383,7 @@ import { Recipient, RecipientUpdate } from '../../../models/recipient.model';
       height: 50vh;
     }
 
-    mat-spinner {
+    .spinner-border {
       margin-right: 10px;
     }
 
@@ -391,8 +418,7 @@ export class RecipientProfileComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private recipientService: RecipientService,
-    private snackBar: MatSnackBar
+    private recipientService: RecipientService
   ) {
     this.profileForm = this.createForm();
   }
@@ -480,10 +506,6 @@ export class RecipientProfileComponent implements OnInit {
   }
 
   private showMessage(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
+    alert(message);
   }
 }

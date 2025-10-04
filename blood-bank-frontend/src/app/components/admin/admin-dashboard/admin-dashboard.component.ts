@@ -1,13 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
 import { AdminService, AdminDashboardStats } from '../../../services/admin.service';
 import { ErrorHandlerService, ApiError } from '../../../services/error-handler.service';
@@ -17,324 +10,221 @@ import { ErrorHandlerService, ApiError } from '../../../services/error-handler.s
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatTabsModule
+    RouterModule
   ],
   template: `
-    <div class="admin-dashboard-container">
+    <div class="container-fluid py-4">
       <!-- Header -->
-      <div class="dashboard-header">
+      <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h1>Admin Dashboard</h1>
-          <p>Manage blood bank operations and monitor system health</p>
+          <h1 class="display-5 fw-bold text-dark">Admin Dashboard</h1>
+          <p class="text-muted fs-5">Manage blood bank operations and monitor system health</p>
         </div>
-        <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="isLoading">
-          <mat-icon>refresh</mat-icon> Refresh Data
+        <button class="btn btn-primary" (click)="refreshData()" [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise me-2"></i>Refresh Data
         </button>
       </div>
 
       <!-- Loading Spinner -->
-      <div *ngIf="isLoading" class="loading-container">
-        <mat-progress-spinner mode="indeterminate" diameter="60"></mat-progress-spinner>
-        <p>Loading dashboard data...</p>
+      <div *ngIf="isLoading" class="d-flex flex-column justify-content-center align-items-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted fs-5">Loading dashboard data...</p>
       </div>
 
       <!-- Quick Stats -->
-      <div class="stats-grid" *ngIf="!isLoading">
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <mat-icon color="primary">people</mat-icon>
-              <div class="stat-info">
-                <h3>{{ totalUsers }}</h3>
-                <p>Total Users</p>
+      <div class="row g-4 mb-5" *ngIf="!isLoading">
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body text-white">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-people-fill fs-1 me-3"></i>
+                <div>
+                  <h3 class="fw-bold mb-1">{{ totalUsers }}</h3>
+                  <p class="mb-0 opacity-75">Total Users</p>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <mat-icon color="accent">volunteer_activism</mat-icon>
-              <div class="stat-info">
-                <h3>{{ totalDonors }}</h3>
-                <p>Registered Donors</p>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="card-body text-white">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-heart-fill fs-1 me-3"></i>
+                <div>
+                  <h3 class="fw-bold mb-1">{{ totalDonors }}</h3>
+                  <p class="mb-0 opacity-75">Registered Donors</p>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <mat-icon color="warn">local_hospital</mat-icon>
-              <div class="stat-info">
-                <h3>{{ totalRecipients }}</h3>
-                <p>Recipients</p>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="card-body text-white">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-hospital-fill fs-1 me-3"></i>
+                <div>
+                  <h3 class="fw-bold mb-1">{{ totalRecipients }}</h3>
+                  <p class="mb-0 opacity-75">Recipients</p>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <mat-icon style="color: #4caf50">inventory</mat-icon>
-              <div class="stat-info">
-                <h3>{{ totalBloodUnits }}</h3>
-                <p>Blood Units Available</p>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <div class="card-body text-white">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-droplet-fill fs-1 me-3"></i>
+                <div>
+                  <h3 class="fw-bold mb-1">{{ totalBloodUnits }}</h3>
+                  <p class="mb-0 opacity-75">Blood Units Available</p>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <mat-icon color="warn">assignment</mat-icon>
-              <div class="stat-info">
-                <h3>{{ pendingRequests }}</h3>
-                <p>Pending Requests</p>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <div class="card-body text-white">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-clipboard-check-fill fs-1 me-3"></i>
+                <div>
+                  <h3 class="fw-bold mb-1">{{ pendingRequests }}</h3>
+                  <p class="mb-0 opacity-75">Pending Requests</p>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <mat-icon color="warn">warning</mat-icon>
-              <div class="stat-info">
-                <h3>{{ lowStockAlerts }}</h3>
-                <p>Low Stock Alerts</p>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+            <div class="card-body text-white">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-1 me-3"></i>
+                <div>
+                  <h3 class="fw-bold mb-1">{{ lowStockAlerts }}</h3>
+                  <p class="mb-0 opacity-75">Low Stock Alerts</p>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <mat-icon color="accent">schedule</mat-icon>
-              <div class="stat-info">
-                <h3>{{ expiringSoonUnits }}</h3>
-                <p>Expiring Soon</p>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+            <div class="card-body text-dark">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-clock-fill fs-1 me-3"></i>
+                <div>
+                  <h3 class="fw-bold mb-1">{{ expiringSoonUnits }}</h3>
+                  <p class="mb-0 opacity-75">Expiring Soon</p>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <mat-icon color="primary">trending_up</mat-icon>
-              <div class="stat-info">
-                <h3>{{ totalDonationsThisMonth }}</h3>
-                <p>Donations This Month</p>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);">
+            <div class="card-body text-dark">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-graph-up-arrow fs-1 me-3"></i>
+                <div>
+                  <h3 class="fw-bold mb-1">{{ totalDonationsThisMonth }}</h3>
+                  <p class="mb-0 opacity-75">Donations This Month</p>
+                </div>
               </div>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
       </div>
 
       <!-- Management Sections -->
-      <div class="management-grid">
-        <mat-card class="management-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>people</mat-icon>
-              User Management
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <p>Manage system users, roles, and permissions</p>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-raised-button color="primary" routerLink="/admin/users">
-              Manage Users
-            </button>
-          </mat-card-actions>
-        </mat-card>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-people-fill me-2"></i>User Management
+              </h5>
+            </div>
+            <div class="card-body">
+              <p class="card-text">Manage system users, roles, and permissions</p>
+            </div>
+            <div class="card-footer bg-transparent">
+              <button class="btn btn-primary w-100" routerLink="/admin/users">
+                Manage Users
+              </button>
+            </div>
+          </div>
+        </div>
 
-        <mat-card class="management-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>inventory</mat-icon>
-              Blood Inventory
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <p>Monitor blood stock levels and manage inventory</p>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-raised-button color="primary" routerLink="/admin/inventory">
-              View Inventory
-            </button>
-          </mat-card-actions>
-        </mat-card>
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-success text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-droplet-fill me-2"></i>Blood Inventory
+              </h5>
+            </div>
+            <div class="card-body">
+              <p class="card-text">Monitor blood stock levels and manage inventory</p>
+            </div>
+            <div class="card-footer bg-transparent">
+              <button class="btn btn-success w-100" routerLink="/admin/inventory">
+                View Inventory
+              </button>
+            </div>
+          </div>
+        </div>
 
-        <mat-card class="management-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>assessment</mat-icon>
-              Reports & Analytics
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <p>Generate reports and view system analytics</p>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-raised-button color="primary" routerLink="/admin/reports">
-              View Reports
-            </button>
-          </mat-card-actions>
-        </mat-card>
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-info text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-graph-up me-2"></i>Reports & Analytics
+              </h5>
+            </div>
+            <div class="card-body">
+              <p class="card-text">Generate reports and view system analytics</p>
+            </div>
+            <div class="card-footer bg-transparent">
+              <button class="btn btn-info w-100" routerLink="/admin/reports">
+                View Reports
+              </button>
+            </div>
+          </div>
+        </div>
 
-        <mat-card class="management-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>volunteer_activism</mat-icon>
-              Donor Management
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <p>Oversee donor registration and donation activities</p>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-raised-button color="primary" routerLink="/donors">
-              Manage Donors
-            </button>
-          </mat-card-actions>
-        </mat-card>
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-danger text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-heart-fill me-2"></i>Donor Management
+              </h5>
+            </div>
+            <div class="card-body">
+              <p class="card-text">Oversee donor registration and donation activities</p>
+            </div>
+            <div class="card-footer bg-transparent">
+              <button class="btn btn-danger w-100" routerLink="/donors">
+                Manage Donors
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `,
-  styles: [`
-    .admin-dashboard-container {
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .dashboard-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-    }
-
-    .dashboard-header div {
-      text-align: left;
-    }
-
-    .dashboard-header h1 {
-      margin: 0;
-      color: #333;
-      font-size: 2.5rem;
-    }
-
-    .dashboard-header p {
-      color: #666;
-      font-size: 1.1rem;
-      margin: 10px 0 0 0;
-    }
-
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px;
-      text-align: center;
-    }
-
-    .loading-container p {
-      margin-top: 20px;
-      color: #666;
-      font-size: 1.1rem;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    }
-
-    .stat-content {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .stat-content mat-icon {
-      font-size: 2.5rem;
-      width: 2.5rem;
-      height: 2.5rem;
-    }
-
-    .stat-info h3 {
-      margin: 0;
-      font-size: 2rem;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .stat-info p {
-      margin: 5px 0 0 0;
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    .management-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .management-card {
-      transition: transform 0.2s ease-in-out;
-    }
-
-    .management-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .management-card mat-card-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .management-card mat-card-actions {
-      padding: 16px;
-    }
-
-    @media (max-width: 768px) {
-      .admin-dashboard-container {
-        padding: 10px;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .management-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  `]
+  styles: []
 })
 export class AdminDashboardComponent implements OnInit {
   totalUsers = 0;
@@ -351,7 +241,6 @@ export class AdminDashboardComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private adminService: AdminService,
-    private snackBar: MatSnackBar,
     private errorHandler: ErrorHandlerService
   ) {}
 

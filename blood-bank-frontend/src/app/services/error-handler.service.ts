@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable, throwError } from 'rxjs';
 
 export interface ApiError {
@@ -14,7 +13,7 @@ export interface ApiError {
 })
 export class ErrorHandlerService {
 
-  constructor(private snackBar: MatSnackBar) { }
+  constructor() { }
 
   handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'An unexpected error occurred';
@@ -104,42 +103,24 @@ export class ErrorHandlerService {
   }
 
   showError(message: string, duration: number = 5000): void {
-    this.snackBar.open(message, 'Close', {
-      duration,
-      panelClass: ['error-snackbar'],
-      horizontalPosition: 'right',
-      verticalPosition: 'top'
-    });
+    console.error('Error:', message);
+    alert(`Error: ${message}`);
   }
 
   showSuccess(message: string, duration: number = 3000): void {
-    this.snackBar.open(message, 'Close', {
-      duration,
-      panelClass: ['success-snackbar'],
-      horizontalPosition: 'right',
-      verticalPosition: 'top'
-    });
+    console.log('Success:', message);
+    alert(`Success: ${message}`);
   }
 
   showWarning(message: string, duration: number = 4000): void {
-    this.snackBar.open(message, 'Close', {
-      duration,
-      panelClass: ['warning-snackbar'],
-      horizontalPosition: 'right',
-      verticalPosition: 'top'
-    });
+    console.warn('Warning:', message);
+    alert(`Warning: ${message}`);
   }
 
   showInfo(message: string, duration: number = 3000): void {
-    this.snackBar.open(message, 'Close', {
-      duration,
-      panelClass: ['info-snackbar'],
-      horizontalPosition: 'right',
-      verticalPosition: 'top'  
-    });
-  }
-
-  handleApiError(error: ApiError, context?: string): void {
+    console.info('Info:', message);
+    alert(`Info: ${message}`);
+  }  handleApiError(error: ApiError, context?: string): void {
     const contextMessage = context ? `${context}: ` : '';
     
     // Show different UI feedback based on error type

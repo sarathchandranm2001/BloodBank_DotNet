@@ -1,16 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatTableModule } from '@angular/material/table';
-import { MatSortModule } from '@angular/material/sort';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
 import { RecipientService } from '../../../services/recipient.service';
 import { BloodGroup, BloodGroupNames } from '../../../models/common.model';
@@ -28,167 +18,172 @@ interface BloodStock {
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatTableModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule
+    RouterModule
   ],
   template: `
     <div class="availability-container">
-      <div class="header">
-        <h1>Blood Availability</h1>
-        <button mat-raised-button color="primary" routerLink="/recipient/request-blood">
-          <mat-icon>add</mat-icon>
+      <div class="header d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Blood Availability</h1>
+        <button class="btn btn-primary" routerLink="/recipient/request-blood">
+          <i class="bi bi-plus-circle me-1"></i>
           Request Blood
         </button>
       </div>
 
       <!-- Search Section -->
-      <mat-card class="search-card">
-        <mat-card-header>
-          <mat-card-title>Check Blood Availability</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="search-form">
-            <mat-form-field appearance="outline">
-              <mat-label>Blood Group</mat-label>
-              <mat-select [(value)]="selectedBloodGroup" (selectionChange)="filterByBloodGroup()">
-                <mat-option value="">All Blood Groups</mat-option>
-                <mat-option *ngFor="let group of bloodGroups" [value]="group">
+      <div class="card search-card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Check Blood Availability</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Blood Group</label>
+              <select class="form-select" [(ngModel)]="selectedBloodGroup" (change)="filterByBloodGroup()">
+                <option value="">All Blood Groups</option>
+                <option *ngFor="let group of bloodGroups" [value]="group">
                   {{ bloodGroupNames[group] }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+                </option>
+              </select>
+            </div>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Minimum Units Required</mat-label>
-              <input matInput type="number" [(ngModel)]="minUnitsRequired" 
+            <div class="col-md-4">
+              <label class="form-label">Minimum Units Required</label>
+              <input type="number" class="form-control" [(ngModel)]="minUnitsRequired" 
                      (input)="filterByUnits()" placeholder="Enter minimum units">
-            </mat-form-field>
+            </div>
 
-            <button mat-stroked-button (click)="clearFilters()">
-              <mat-icon>clear</mat-icon>
-              Clear Filters
-            </button>
+            <div class="col-md-4 d-flex align-items-end gap-2">
+              <button class="btn btn-outline-secondary" (click)="clearFilters()">
+                <i class="bi bi-x-circle me-1"></i>
+                Clear Filters
+              </button>
 
-            <button mat-raised-button (click)="refreshData()">
-              <mat-icon>refresh</mat-icon>
-              Refresh
-            </button>
+              <button class="btn btn-primary" (click)="refreshData()">
+                <i class="bi bi-arrow-clockwise me-1"></i>
+                Refresh
+              </button>
+            </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
 
       <!-- Availability Grid -->
-      <div class="availability-grid" *ngIf="!isLoading && filteredAvailability.length > 0">
-        <mat-card *ngFor="let stock of filteredAvailability" class="blood-card" 
-                  [ngClass]="getAvailabilityClass(stock)">
-          <mat-card-header>
-            <div class="blood-header">
-              <div class="blood-group">
-                <mat-icon class="blood-icon">bloodtype</mat-icon>
-                <h2>{{ bloodGroupNames[stock.bloodGroup] }}</h2>
-              </div>
-              <div class="availability-status">
-                <mat-icon>{{ getAvailabilityIcon(stock) }}</mat-icon>
+      <div class="availability-grid row g-3" *ngIf="!isLoading && filteredAvailability.length > 0">
+        <div class="col-md-6 col-lg-4" *ngFor="let stock of filteredAvailability">
+          <div class="card blood-card h-100" [ngClass]="getAvailabilityClass(stock)">
+            <div class="card-header">
+              <div class="blood-header d-flex justify-content-between align-items-center">
+                <div class="blood-group d-flex align-items-center">
+                  <i class="bi bi-droplet-fill blood-icon me-2"></i>
+                  <h5 class="mb-0">{{ bloodGroupNames[stock.bloodGroup] }}</h5>
+                </div>
+                <div class="availability-status">
+                  <i class="bi bi-{{ getAvailabilityIcon(stock) }}"></i>
+                </div>
               </div>
             </div>
-          </mat-card-header>
 
-          <mat-card-content>
-            <div class="stock-info">
-              <div class="units-available">
-                <span class="units-number">{{ stock.availableUnits }}</span>
-                <span class="units-label">Units Available</span>
-              </div>
-
-              <div class="stock-details">
-                <div class="detail-item" *ngIf="stock.expiryDate">
-                  <mat-icon>schedule</mat-icon>
-                  <span>Expires: {{ stock.expiryDate | date:'short' }}</span>
+            <div class="card-body">
+              <div class="stock-info">
+                <div class="units-available text-center mb-3">
+                  <span class="units-number display-4 fw-bold text-primary">{{ stock.availableUnits }}</span>
+                  <div class="units-label text-muted">Units Available</div>
                 </div>
+
+                <div class="stock-details">
+                  <div class="detail-item d-flex align-items-center mb-2" *ngIf="stock.expiryDate">
+                    <i class="bi bi-clock me-2"></i>
+                    <span>Expires: {{ stock.expiryDate | date:'short' }}</span>
+                  </div>
+                  
+                  <div class="detail-item d-flex align-items-center mb-2">
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    <span>Updated: {{ stock.lastUpdated | date:'short' }}</span>
+                  </div>
+                </div>
+
+                <div class="availability-message">
+                  <p class="text-muted mb-0">{{ getAvailabilityMessage(stock) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer bg-transparent">
+              <div class="d-grid gap-2">
+                <button class="btn btn-primary" 
+                        routerLink="/recipient/request-blood"
+                        [queryParams]="{bloodGroup: stock.bloodGroup}"
+                        [disabled]="stock.availableUnits === 0">
+                  <i class="bi bi-plus-circle me-1"></i>
+                  Request This Blood
+                </button>
                 
-                <div class="detail-item">
-                  <mat-icon>update</mat-icon>
-                  <span>Updated: {{ stock.lastUpdated | date:'short' }}</span>
-                </div>
-              </div>
-
-              <div class="availability-message">
-                <p>{{ getAvailabilityMessage(stock) }}</p>
+                <button class="btn btn-outline-info btn-sm" (click)="getDetailedInfo(stock.bloodGroup)">
+                  <i class="bi bi-info-circle me-1"></i>
+                  More Info
+                </button>
               </div>
             </div>
-          </mat-card-content>
-
-          <mat-card-actions>
-            <button mat-raised-button color="primary" 
-                    routerLink="/recipient/request-blood"
-                    [queryParams]="{bloodGroup: stock.bloodGroup}"
-                    [disabled]="stock.availableUnits === 0">
-              <mat-icon>add</mat-icon>
-              Request This Blood
-            </button>
-            
-            <button mat-button (click)="getDetailedInfo(stock.bloodGroup)">
-              <mat-icon>info</mat-icon>
-              More Info
-            </button>
-          </mat-card-actions>
-        </mat-card>
+          </div>
+        </div>
       </div>
 
       <!-- Summary Card -->
-      <mat-card class="summary-card" *ngIf="!isLoading && availability.length > 0">
-        <mat-card-header>
-          <mat-card-title>Availability Summary</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="summary-stats">
-            <div class="stat-item">
-              <span class="stat-number">{{ getTotalUnits() }}</span>
-              <span class="stat-label">Total Units</span>
+      <div class="card summary-card mt-4" *ngIf="!isLoading && availability.length > 0">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Availability Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="summary-stats row text-center">
+            <div class="col-md-4">
+              <div class="stat-item">
+                <span class="stat-number display-5 fw-bold text-info">{{ getTotalUnits() }}</span>
+                <div class="stat-label text-muted">Total Units</div>
+              </div>
             </div>
             
-            <div class="stat-item">
-              <span class="stat-number">{{ getAvailableGroups() }}</span>
-              <span class="stat-label">Blood Groups Available</span>
+            <div class="col-md-4">
+              <div class="stat-item">
+                <span class="stat-number display-5 fw-bold text-success">{{ getAvailableGroups() }}</span>
+                <div class="stat-label text-muted">Blood Groups Available</div>
+              </div>
             </div>
             
-            <div class="stat-item">
-              <span class="stat-number">{{ getCriticalGroups() }}</span>
-              <span class="stat-label">Critical Stock</span>
+            <div class="col-md-4">
+              <div class="stat-item">
+                <span class="stat-number display-5 fw-bold text-warning">{{ getCriticalGroups() }}</span>
+                <div class="stat-label text-muted">Critical Stock</div>
+              </div>
             </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
 
       <!-- Empty State -->
-      <div class="empty-state" *ngIf="!isLoading && filteredAvailability.length === 0">
-        <mat-icon>search_off</mat-icon>
+      <div class="empty-state text-center py-5" *ngIf="!isLoading && filteredAvailability.length === 0">
+        <i class="bi bi-search display-1 text-muted mb-3"></i>
         <h2>No blood availability data</h2>
-        <p>{{ availability.length === 0 ? "No blood stock information available." : "No blood groups match your current filters." }}</p>
-        <button mat-stroked-button (click)="clearFilters()" 
-                *ngIf="availability.length > 0">
-          <mat-icon>clear</mat-icon>
-          Clear Filters
-        </button>
-        <button mat-raised-button (click)="refreshData()">
-          <mat-icon>refresh</mat-icon>
-          Refresh Data
-        </button>
+        <p class="text-muted">{{ availability.length === 0 ? "No blood stock information available." : "No blood groups match your current filters." }}</p>
+        <div class="mt-3">
+          <button class="btn btn-outline-secondary me-2" (click)="clearFilters()" 
+                  *ngIf="availability.length > 0">
+            <i class="bi bi-x-circle me-1"></i>
+            Clear Filters
+          </button>
+          <button class="btn btn-primary" (click)="refreshData()">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Refresh Data
+          </button>
+        </div>
       </div>
 
       <!-- Loading State -->
-      <div class="loading-container" *ngIf="isLoading">
-        <mat-spinner></mat-spinner>
-        <p>Loading blood availability...</p>
+      <div class="loading-container text-center py-5" *ngIf="isLoading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading blood availability...</p>
       </div>
     </div>
   `,
@@ -470,8 +465,7 @@ export class BloodAvailabilityComponent implements OnInit {
   bloodGroupNames: { [key: string]: string } = BloodGroupNames;
 
   constructor(
-    private recipientService: RecipientService,
-    private snackBar: MatSnackBar
+    private recipientService: RecipientService
   ) {}
 
   ngOnInit(): void {
@@ -536,11 +530,11 @@ export class BloodAvailabilityComponent implements OnInit {
   getAvailabilityIcon(stock: BloodStock): string {
     const className = this.getAvailabilityClass(stock);
     switch (className) {
-      case 'available': return 'check_circle';
-      case 'limited': return 'warning';
-      case 'critical': return 'error';
-      case 'unavailable': return 'cancel';
-      default: return 'help';
+      case 'available': return 'check-circle-fill';
+      case 'limited': return 'exclamation-triangle-fill';
+      case 'critical': return 'exclamation-circle-fill';
+      case 'unavailable': return 'x-circle-fill';
+      default: return 'question-circle-fill';
     }
   }
 
@@ -582,10 +576,6 @@ export class BloodAvailabilityComponent implements OnInit {
   }
 
   private showMessage(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
+    alert(message);
   }
 }

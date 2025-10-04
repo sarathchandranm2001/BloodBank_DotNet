@@ -1,262 +1,154 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AdminService, BloodGroupStats, SystemAlert } from '../../../services/admin.service';
 
 @Component({
   selector: 'app-blood-inventory',
   standalone: true,
   imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule
+    CommonModule
   ],
   template: `
-    <div class="inventory-container">
-      <div class="header">
-        <h1>Blood Inventory Management</h1>
-        <div class="header-actions">
-          <button mat-raised-button color="accent" (click)="refreshData()" [disabled]="isLoading">
-            <mat-icon>refresh</mat-icon>
-            Refresh
+    <div class="container-fluid py-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5 fw-bold text-dark">Blood Inventory Management</h1>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary" (click)="refreshData()" [disabled]="isLoading">
+            <i class="bi bi-arrow-clockwise me-2"></i>Refresh
           </button>
-          <button mat-raised-button color="primary">
-            <mat-icon>add</mat-icon>
-            Add Blood Stock
+          <button class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Add Blood Stock
           </button>
         </div>
       </div>
 
       <!-- Loading Spinner -->
-      <div *ngIf="isLoading" class="loading-container">
-        <mat-progress-spinner mode="indeterminate" diameter="60"></mat-progress-spinner>
-        <p>Loading inventory data...</p>
+      <div *ngIf="isLoading" class="d-flex flex-column justify-content-center align-items-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted fs-5">Loading inventory data...</p>
       </div>
 
-      <div class="inventory-grid" *ngIf="!isLoading">
-        <mat-card class="stock-summary">
-          <mat-card-header>
-            <mat-card-title>Stock Summary</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="blood-groups" *ngIf="bloodGroups.length > 0; else noDataTemplate">
-              <div class="blood-group-item" *ngFor="let group of bloodGroups">
-                <span class="blood-type">{{ group.bloodGroup }}</span>
-                <span class="units">{{ group.totalUnits }} units</span>
-                <mat-chip [ngClass]="getStockClass(group.totalUnits)">
-                  {{ getStockStatus(group.totalUnits) }}
-                </mat-chip>
-                <div class="additional-info">
-                  <small *ngIf="group.expiringSoonUnits > 0" class="expiring-info">
-                    {{ group.expiringSoonUnits }} expiring soon
-                  </small>
+      <div class="row g-4" *ngIf="!isLoading">
+        <div class="col-lg-8">
+          <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-droplet-fill me-2"></i>Stock Summary
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3" *ngIf="bloodGroups.length > 0; else noDataTemplate">
+                <div class="col-md-6 col-lg-4" *ngFor="let group of bloodGroups">
+                  <div class="card h-100 border-start border-4" [ngClass]="{
+                    'border-success': getStockClass(group.totalUnits) === 'high-stock',
+                    'border-warning': getStockClass(group.totalUnits) === 'medium-stock',
+                    'border-danger': getStockClass(group.totalUnits) === 'low-stock'
+                  }">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                          <h5 class="text-danger fw-bold mb-1">{{ group.bloodGroup }}</h5>
+                          <p class="text-muted mb-2">{{ group.totalUnits }} units</p>
+                          <span class="badge" [ngClass]="{
+                            'bg-success': getStockClass(group.totalUnits) === 'high-stock',
+                            'bg-warning': getStockClass(group.totalUnits) === 'medium-stock',
+                            'bg-danger': getStockClass(group.totalUnits) === 'low-stock'
+                          }">
+                            {{ getStockStatus(group.totalUnits) }}
+                          </span>
+                        </div>
+                        <i class="bi bi-droplet-fill fs-2 text-danger"></i>
+                      </div>
+                      <div *ngIf="group.expiringSoonUnits > 0" class="mt-2">
+                        <small class="text-warning">
+                          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                          {{ group.expiringSoonUnits }} expiring soon
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ng-template #noDataTemplate>
+                <div class="text-center py-4">
+                  <i class="bi bi-info-circle fs-1 text-muted mb-3"></i>
+                  <p class="text-muted">No blood inventory data available</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card shadow-sm border-0">
+            <div class="card-header bg-warning text-dark">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>System Alerts
+              </h5>
+            </div>
+            <div class="card-body">
+              <div *ngIf="alerts.length > 0; else noAlertsTemplate">
+                <div class="alert alert-warning border-0 shadow-sm mb-2" *ngFor="let alert of alerts">
+                  <div class="d-flex align-items-center">
+                    <i class="bi" [ngClass]="{
+                      'bi-exclamation-triangle-fill text-danger': alert.severity === 'critical',
+                      'bi-exclamation-triangle text-warning': alert.severity === 'warning',
+                      'bi-info-circle text-info': alert.severity === 'info'
+                    }"></i>
+                    <span class="ms-2">{{ alert.message }}</span>
+                  </div>
+                </div>
+              </div>
+              <ng-template #noAlertsTemplate>
+                <div class="text-center py-4">
+                  <i class="bi bi-check-circle-fill fs-1 text-success mb-3"></i>
+                  <p class="text-muted">No active alerts</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4" *ngIf="!isLoading">
+        <div class="col-12">
+          <div class="card shadow-sm border-0">
+            <div class="card-header bg-info text-white">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-graph-up me-2"></i>Detailed Inventory
+              </h5>
+            </div>
+            <div class="card-body">
+              <p class="text-muted mb-4">Real-time blood inventory tracking with expiry monitoring and stock management.</p>
+              <div class="row g-4">
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <h4 class="fw-bold text-primary mb-1">{{ getTotalUnits() }}</h4>
+                    <p class="text-muted mb-0">Total Units</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <h4 class="fw-bold text-warning mb-1">{{ getLowStockCount() }}</h4>
+                    <p class="text-muted mb-0">Low Stock Alerts</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <h4 class="fw-bold text-danger mb-1">{{ getExpiringSoonCount() }}</h4>
+                    <p class="text-muted mb-0">Expiring Soon</p>
+                  </div>
                 </div>
               </div>
             </div>
-            <ng-template #noDataTemplate>
-              <div class="no-data">
-                <mat-icon>info</mat-icon>
-                <p>No blood inventory data available</p>
-              </div>
-            </ng-template>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="alerts">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon color="warn">warning</mat-icon>
-              System Alerts
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div *ngIf="alerts.length > 0; else noAlertsTemplate">
-              <div class="alert-item" *ngFor="let alert of alerts">
-                <mat-icon [class]="'severity-' + alert.severity">{{ alert.icon }}</mat-icon>
-                <span>{{ alert.message }}</span>
-              </div>
-            </div>
-            <ng-template #noAlertsTemplate>
-              <div class="no-alerts">
-                <mat-icon color="primary">check_circle</mat-icon>
-                <p>No active alerts</p>
-              </div>
-            </ng-template>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <mat-card class="inventory-details" *ngIf="!isLoading">
-        <mat-card-header>
-          <mat-card-title>Detailed Inventory</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>Real-time blood inventory tracking with expiry monitoring and stock management.</p>
-          <div class="inventory-stats">
-            <div class="stat-item">
-              <h4>Total Units</h4>
-              <p>{{ getTotalUnits() }}</p>
-            </div>
-            <div class="stat-item">
-              <h4>Low Stock Alerts</h4>
-              <p>{{ getLowStockCount() }}</p>
-            </div>
-            <div class="stat-item">
-              <h4>Expiring Soon</h4>
-              <p>{{ getExpiringSoonCount() }}</p>
-            </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     </div>
   `,
-  styles: [`
-    .inventory-container {
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px;
-      text-align: center;
-    }
-
-    .loading-container p {
-      margin-top: 20px;
-      color: #666;
-      font-size: 1.1rem;
-    }
-
-    .inventory-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .blood-groups {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-    }
-
-    .blood-group-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-
-    .blood-type {
-      font-weight: bold;
-      color: #d32f2f;
-    }
-
-    .alert-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      padding: 8px;
-      background: #fff3e0;
-      border-radius: 4px;
-    }
-
-    .no-data, .no-alerts {
-      text-align: center;
-      padding: 20px;
-      color: #666;
-    }
-
-    .no-data mat-icon, .no-alerts mat-icon {
-      font-size: 2rem;
-      width: 2rem;
-      height: 2rem;
-      margin-bottom: 10px;
-    }
-
-    .additional-info {
-      font-size: 0.8rem;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .expiring-info {
-      color: #ff9800;
-      font-weight: 500;
-    }
-
-    .inventory-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .stat-item {
-      text-align: center;
-      padding: 15px;
-      background: #f5f5f5;
-      border-radius: 4px;
-    }
-
-    .stat-item h4 {
-      margin: 0 0 8px 0;
-      color: #333;
-      font-size: 0.9rem;
-    }
-
-    .stat-item p {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #1976d2;
-    }
-
-    .severity-critical { color: #f44336; }
-    .severity-warning { color: #ff9800; }
-    .severity-info { color: #2196f3; }
-
-    .high-stock { background-color: #4caf50; }
-    .medium-stock { background-color: #ff9800; }
-    .low-stock { background-color: #f44336; }
-
-    @media (max-width: 768px) {
-      .inventory-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  `]
+  styles: []
 })
 export class BloodInventoryComponent implements OnInit {
   bloodGroups: BloodGroupStats[] = [];
@@ -264,8 +156,7 @@ export class BloodInventoryComponent implements OnInit {
   isLoading = true;
 
   constructor(
-    private adminService: AdminService,
-    private snackBar: MatSnackBar
+    private adminService: AdminService
   ) {}
 
   ngOnInit(): void {
@@ -283,10 +174,7 @@ export class BloodInventoryComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading blood group stats:', error);
-        this.snackBar.open('Error loading inventory data. Please try again.', 'Close', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
+        alert('Error loading inventory data. Please try again.');
         this.isLoading = false;
       }
     });

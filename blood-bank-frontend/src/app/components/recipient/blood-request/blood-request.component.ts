@@ -2,16 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatIconModule } from '@angular/material/icon';
 import { RecipientService } from '../../../services/recipient.service';
 import { BloodRequestCreate, BloodRequestUrgency, BloodRequestUrgencyNames } from '../../../models/recipient.model';
 import { BloodGroup, BloodGroupNames } from '../../../models/common.model';
@@ -21,146 +11,152 @@ import { BloodGroup, BloodGroupNames } from '../../../models/common.model';
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatIconModule
+    ReactiveFormsModule
   ],
   template: `
-    <div class="request-container">
-      <mat-card class="request-card">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>add_circle</mat-icon>
-            New Blood Request
-          </mat-card-title>
-          <mat-card-subtitle>Submit a new blood request</mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-          <form [formGroup]="requestForm" (ngSubmit)="onSubmit()" class="request-form">
-            <!-- Blood Requirements -->
-            <div class="form-section">
-              <h3>Blood Requirements</h3>
-              
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="half-width">
-                  <mat-label>Blood Group</mat-label>
-                  <mat-select formControlName="bloodGroup">
-                    <mat-option *ngFor="let group of bloodGroups" [value]="group">
-                      {{ bloodGroupNames[group] }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-error *ngIf="requestForm.get('bloodGroup')?.hasError('required')">
-                    Blood group is required
-                  </mat-error>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="half-width">
-                  <mat-label>Units Required</mat-label>
-                  <input matInput type="number" formControlName="unitsRequested" 
-                         placeholder="Enter number of units" min="1" max="10">
-                  <mat-error *ngIf="requestForm.get('unitsRequested')?.hasError('required')">
-                    Number of units is required
-                  </mat-error>
-                  <mat-error *ngIf="requestForm.get('unitsRequested')?.hasError('min')">
-                    At least 1 unit is required
-                  </mat-error>
-                  <mat-error *ngIf="requestForm.get('unitsRequested')?.hasError('max')">
-                    Maximum 10 units can be requested
-                  </mat-error>
-                </mat-form-field>
-              </div>
-
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="half-width">
-                  <mat-label>Urgency Level</mat-label>
-                  <mat-select formControlName="urgency">
-                    <mat-option *ngFor="let urgency of urgencyLevels" [value]="urgency">
-                      {{ urgencyNames[urgency] }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-error *ngIf="requestForm.get('urgency')?.hasError('required')">
-                    Urgency level is required
-                  </mat-error>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="half-width">
-                  <mat-label>Required By Date</mat-label>
-                  <input matInput [matDatepicker]="picker" formControlName="requiredByDate"
-                         placeholder="Select date">
-                  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                  <mat-datepicker #picker></mat-datepicker>
-                  <mat-error *ngIf="requestForm.get('requiredByDate')?.hasError('required')">
-                    Required by date is required
-                  </mat-error>
-                  <mat-error *ngIf="requestForm.get('requiredByDate')?.hasError('futureDate')">
-                    Date must be in the future
-                  </mat-error>
-                </mat-form-field>
-              </div>
+    <div class="container-fluid py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card shadow-lg">
+            <div class="card-header bg-danger text-white">
+              <h4 class="card-title mb-0">
+                <i class="bi bi-plus-circle me-2"></i>
+                New Blood Request
+              </h4>
+              <p class="card-text mb-0 mt-2">Submit a new blood request</p>
             </div>
 
-            <!-- Medical Justification -->
-            <div class="form-section">
-              <h3>Medical Information</h3>
-              
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Request Reason</mat-label>
-                <textarea matInput formControlName="requestReason" 
-                          placeholder="Provide detailed medical justification for the blood requirement"
-                          rows="4"></textarea>
-                <mat-error *ngIf="requestForm.get('requestReason')?.hasError('required')">
-                  Medical justification is required
-                </mat-error>
-                <mat-error *ngIf="requestForm.get('requestReason')?.hasError('minlength')">
-                  Please provide more detailed justification (minimum 20 characters)
-                </mat-error>
-              </mat-form-field>
+            <div class="card-body">
+              <form [formGroup]="requestForm" (ngSubmit)="onSubmit()">
+                <!-- Blood Requirements -->
+                <div class="mb-4">
+                  <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-droplet-half me-2"></i>Blood Requirements
+                  </h5>
+                  
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="bloodGroup" class="form-label">Blood Group <span class="text-danger">*</span></label>
+                      <select class="form-select" id="bloodGroup" formControlName="bloodGroup"
+                              [class.is-invalid]="requestForm.get('bloodGroup')?.invalid && requestForm.get('bloodGroup')?.touched">
+                        <option value="">Select Blood Group</option>
+                        <option *ngFor="let group of bloodGroups" [value]="group">
+                          {{ bloodGroupNames[group] }}
+                        </option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="requestForm.get('bloodGroup')?.hasError('required') && requestForm.get('bloodGroup')?.touched">
+                        Blood group is required
+                      </div>
+                    </div>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Doctor's Notes (Optional)</mat-label>
-                <textarea matInput formControlName="doctorNotes" 
-                          placeholder="Additional notes from the attending physician"
-                          rows="3"></textarea>
-              </mat-form-field>
-            </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="unitsRequested" class="form-label">Units Required <span class="text-danger">*</span></label>
+                      <input type="number" class="form-control" id="unitsRequested" 
+                             formControlName="unitsRequested" placeholder="Enter number of units"
+                             min="1" max="10"
+                             [class.is-invalid]="requestForm.get('unitsRequested')?.invalid && requestForm.get('unitsRequested')?.touched">
+                      <div class="invalid-feedback" *ngIf="requestForm.get('unitsRequested')?.hasError('required') && requestForm.get('unitsRequested')?.touched">
+                        Number of units is required
+                      </div>
+                      <div class="invalid-feedback" *ngIf="requestForm.get('unitsRequested')?.hasError('min') && requestForm.get('unitsRequested')?.touched">
+                        At least 1 unit is required
+                      </div>
+                      <div class="invalid-feedback" *ngIf="requestForm.get('unitsRequested')?.hasError('max') && requestForm.get('unitsRequested')?.touched">
+                        Maximum 10 units can be requested
+                      </div>
+                    </div>
+                  </div>
 
-            <!-- Blood Availability Check -->
-            <div class="form-section" *ngIf="bloodAvailability">
-              <h3>Blood Availability</h3>
-              <div class="availability-info" [ngClass]="getAvailabilityClass()">
-                <mat-icon>{{ getAvailabilityIcon() }}</mat-icon>
-                <div class="availability-text">
-                  <strong>{{ selectedBloodGroup }} Blood:</strong>
-                  <span>{{ bloodAvailability?.availableUnits || 0 }} units available</span>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="urgency" class="form-label">Urgency Level <span class="text-danger">*</span></label>
+                      <select class="form-select" id="urgency" formControlName="urgency"
+                              [class.is-invalid]="requestForm.get('urgency')?.invalid && requestForm.get('urgency')?.touched">
+                        <option value="">Select Urgency Level</option>
+                        <option *ngFor="let urgency of urgencyLevels" [value]="urgency">
+                          {{ urgencyNames[urgency] }}
+                        </option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="requestForm.get('urgency')?.hasError('required') && requestForm.get('urgency')?.touched">
+                        Urgency level is required
+                      </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                      <label for="requiredByDate" class="form-label">Required By Date <span class="text-danger">*</span></label>
+                      <input type="date" class="form-control" id="requiredByDate" 
+                             formControlName="requiredByDate"
+                             [class.is-invalid]="requestForm.get('requiredByDate')?.invalid && requestForm.get('requiredByDate')?.touched">
+                      <div class="invalid-feedback" *ngIf="requestForm.get('requiredByDate')?.hasError('required') && requestForm.get('requiredByDate')?.touched">
+                        Required by date is required
+                      </div>
+                      <div class="invalid-feedback" *ngIf="requestForm.get('requiredByDate')?.hasError('futureDate') && requestForm.get('requiredByDate')?.touched">
+                        Date must be in the future
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div class="form-actions">
-              <button mat-button type="button" (click)="onCancel()">Cancel</button>
-              <button mat-button type="button" (click)="checkAvailability()" 
-                      [disabled]="!requestForm.get('bloodGroup')?.value">
-                <mat-icon>search</mat-icon>
-                Check Availability
-              </button>
-              <button mat-raised-button color="primary" type="submit" 
-                      [disabled]="requestForm.invalid || isLoading">
-                <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
-                {{ isLoading ? 'Submitting...' : 'Submit Request' }}
-              </button>
+                <!-- Medical Justification -->
+                <div class="mb-4">
+                  <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-heart-pulse me-2"></i>Medical Information
+                  </h5>
+                  
+                  <div class="mb-3">
+                    <label for="requestReason" class="form-label">Request Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="requestReason" rows="4"
+                              formControlName="requestReason" 
+                              placeholder="Provide detailed medical justification for the blood requirement"
+                              [class.is-invalid]="requestForm.get('requestReason')?.invalid && requestForm.get('requestReason')?.touched"></textarea>
+                    <div class="invalid-feedback" *ngIf="requestForm.get('requestReason')?.hasError('required') && requestForm.get('requestReason')?.touched">
+                      Medical justification is required
+                    </div>
+                    <div class="invalid-feedback" *ngIf="requestForm.get('requestReason')?.hasError('minlength') && requestForm.get('requestReason')?.touched">
+                      Please provide more detailed justification (minimum 20 characters)
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="doctorNotes" class="form-label">Doctor's Notes (Optional)</label>
+                    <textarea class="form-control" id="doctorNotes" rows="3"
+                              formControlName="doctorNotes" 
+                              placeholder="Additional notes from the attending physician"></textarea>
+                  </div>
+                </div>
+
+                <!-- Blood Availability Check -->
+                <div class="mb-4" *ngIf="bloodAvailability">
+                  <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="bi bi-search me-2"></i>Blood Availability
+                  </h5>
+                  <div class="alert" [ngClass]="getAvailabilityClass()">
+                    <i class="bi" [ngClass]="getAvailabilityIcon()"></i>
+                    <strong>{{ selectedBloodGroup }} Blood:</strong>
+                    {{ bloodAvailability?.availableUnits || 0 }} units available
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                  <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                  </button>
+                  <button type="button" class="btn btn-info" (click)="checkAvailability()" 
+                          [disabled]="!requestForm.get('bloodGroup')?.value">
+                    <i class="bi bi-search me-2"></i>Check Availability
+                  </button>
+                  <button type="submit" class="btn btn-danger" 
+                          [disabled]="requestForm.invalid || isLoading">
+                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <i *ngIf="!isLoading" class="bi bi-check-circle me-2"></i>
+                    {{ isLoading ? 'Submitting...' : 'Submit Request' }}
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
-        </mat-card-content>
-      </mat-card>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -279,8 +275,7 @@ export class BloodRequestComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private recipientService: RecipientService,
-    private router: Router,
-    private snackBar: MatSnackBar
+    private router: Router
   ) {
     this.requestForm = this.createForm();
   }
@@ -337,23 +332,23 @@ export class BloodRequestComponent implements OnInit {
   }
 
   getAvailabilityClass(): string {
-    if (!this.bloodAvailability) return '';
+    if (!this.bloodAvailability) return 'alert-secondary';
     
     const available = this.bloodAvailability.availableUnits || 0;
     const required = this.requestForm.get('unitsRequested')?.value || 0;
     
-    if (available === 0) return 'unavailable';
-    if (available < required) return 'limited';
-    return 'available';
+    if (available === 0) return 'alert-danger';
+    if (available < required) return 'alert-warning';
+    return 'alert-success';
   }
 
   getAvailabilityIcon(): string {
     const className = this.getAvailabilityClass();
     switch (className) {
-      case 'available': return 'check_circle';
-      case 'limited': return 'warning';
-      case 'unavailable': return 'cancel';
-      default: return 'info';
+      case 'alert-success': return 'bi-check-circle-fill';
+      case 'alert-warning': return 'bi-exclamation-triangle-fill';
+      case 'alert-danger': return 'bi-x-circle-fill';
+      default: return 'bi-info-circle-fill';
     }
   }
 
@@ -393,10 +388,6 @@ export class BloodRequestComponent implements OnInit {
   }
 
   private showMessage(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
+    alert(message);
   }
 }
